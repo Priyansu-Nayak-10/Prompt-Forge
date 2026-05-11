@@ -44,21 +44,21 @@ const loadBookmarks = async () => {
     try {
         const res = await fetchSavedPrompts();
         if (!res.data || res.data.length === 0) {
-            container.innerHTML = \`
+            container.innerHTML = `
                 <div class="empty-state">
                     <h3>No saved prompts yet</h3>
                     <p>Explore the platform and save your favorite prompts to see them here.</p>
                     <a href="/prompts.html" class="btn btn-secondary">Explore Prompts</a>
                 </div>
-            \`;
+            `;
             return;
         }
 
-        container.innerHTML = \`<div class="prompt-grid">\${res.data.map(p => promptCardHTML({...p, isSaved: true})).join('')}</div>\`;
+        container.innerHTML = `<div class="prompt-grid">${res.data.map(p => promptCardHTML({...p, isSaved: true})).join('')}</div>`;
         attachCopyHandlers(container);
         attachSaveHandlers(container);
     } catch (err) {
-        container.innerHTML = \`<div class="empty-state"><h3>Error loading bookmarks</h3><p>\${err.message}</p></div>\`;
+        container.innerHTML = `<div class="empty-state"><h3>Error loading bookmarks</h3><p>${err.message}</p></div>`;
     }
 };
 

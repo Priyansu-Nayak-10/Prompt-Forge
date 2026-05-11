@@ -24,7 +24,7 @@ try {
   const prompts = res.data || [];
 
   if (!prompts.length) {
-    grid.innerHTML = \`<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">No trending prompts yet.</div>\`;
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">No trending prompts yet.</div>`;
   } else {
     let savedIds = [];
     if (isAuthenticated()) {
