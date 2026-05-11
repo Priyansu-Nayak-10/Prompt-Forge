@@ -7,7 +7,7 @@
   <title>Create Account — PromptForge</title>
   <meta name="description" content="Join PromptForge and start saving your favourite AI prompts.">
   <meta name="robots" content="noindex">
-  <link rel="stylesheet" href="./css/global.css">
+  <link rel="stylesheet" href="/css/global.css">
   <style>
     body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
     .auth-card  { width: 100%; max-width: 420px; }
@@ -99,8 +99,8 @@
 </div>
 
 <script type="module">
-  import { signUp, redirectIfLoggedIn } from './js/auth.js';
-  import { setButtonLoading } from './js/ui.js';
+  import { signUp, redirectIfLoggedIn } from '/js/auth.js';
+  import { setButtonLoading } from '/js/core.js';
 
   // Redirect if already signed in
   await redirectIfLoggedIn('/');
@@ -173,6 +173,6 @@
     }
   });
 </script>
-<script type="module" src="./js/theme.js"></script>
+<script type="module" src="/js/theme.js"></script>
 </body>
 </html>
