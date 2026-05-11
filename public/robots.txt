@@ -8,4 +8,4 @@ Allow: /prompt-detail.html
 Disallow: /dashboard.html
 Disallow: /login.html
 
-Sitemap: https://promptvault.com/sitemap.xml
+Sitemap: https://promptforge.com/sitemap.xml

@@ -26,12 +26,9 @@ const navbarHtml = `
 `;
 
 export const renderNavbar = () => {
-    console.log('Rendering navbar...');
     const container = document.getElementById('navbar-container');
-    console.log('Container:', container);
     if (!container) return;
     container.innerHTML = navbarHtml;
-    console.log('Navbar injected');
 
     // Set active link
     const path = window.location.pathname;
