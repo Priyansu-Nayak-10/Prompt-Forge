@@ -5,9 +5,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/**
- * Sign in with email + password. Stores token for API calls.
- */
+
 export const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -16,29 +14,21 @@ export const signIn = async (email, password) => {
     return data;
 };
 
-/**
- * Register a new user with email + password.
- * Supabase sends a confirmation email automatically.
- * Does NOT auto-login — user must confirm email first.
- */
+
 export const signUp = async (email, password) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     return data;
 };
 
-/**
- * Sign out and clean up local state.
- */
+
 export const signOut = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem('sb_access_token');
     localStorage.removeItem('sb_user');
 };
 
-/**
- * Returns cached user from localStorage (sync, no network).
- */
+
 export const getCachedUser = () => {
     try {
         return JSON.parse(localStorage.getItem('sb_user'));
@@ -47,10 +37,7 @@ export const getCachedUser = () => {
     }
 };
 
-/**
- * Verifies session is still valid by calling Supabase.
- * Use on page load for protected pages.
- */
+
 export const requireAuth = async (redirectTo = '/login.html') => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -65,9 +52,7 @@ export const requireAuth = async (redirectTo = '/login.html') => {
 // Alias for legacy code or specific admin pages (could be extended later with role check)
 export const requireAdmin = requireAuth;
 
-/**
- * Redirects away from login page if already authenticated.
- */
+
 export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -77,10 +62,7 @@ export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
     }
 };
 
-/**
- * Returns true if the user has a local session token.
- * Useful for synchronous UI checks before sensitive actions.
- */
+
 export const isAuthenticated = () => {
     return !!localStorage.getItem('sb_access_token');
 };

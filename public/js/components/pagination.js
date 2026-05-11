@@ -1,6 +1,4 @@
-/**
- * pagination.js — Premium pagination with design system
- */
+
 export const renderPagination = (container, { page, totalPages, total }, onPageChange) => {
   container.innerHTML = '';
   if (!totalPages || totalPages <= 1) return;

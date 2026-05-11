@@ -1,9 +1,7 @@
 const { supabaseAdmin } = require('../config/supabase');
 const { generateUniqueSlug } = require('./slug.service');
 
-/**
- * Fetch all published prompts with pagination, search, and filtering
- */
+
 const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => {
     const start = (page - 1) * limit;
     const end = start + limit - 1;
@@ -48,9 +46,7 @@ const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => 
     };
 };
 
-/**
- * Fetch a single prompt by slug
- */
+
 const getPromptBySlug = async (slug) => {
     const { data, error } = await supabaseAdmin
         .from('prompts')
@@ -66,10 +62,7 @@ const getPromptBySlug = async (slug) => {
     return data; // null if not found
 };
 
-/**
- * Increment the copy count for a prompt by ID.
- * Uses a single UPDATE query instead of fetch-then-update.
- */
+
 const incrementCopyCount = async (id) => {
     const { error } = await supabaseAdmin.rpc('increment_copy_count', { prompt_id: id });
     if (error) {

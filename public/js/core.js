@@ -1,6 +1,4 @@
-/**
- * core.js — Consolidated UI and Toast utilities
- */
+
 
 // --- Toast Logic ---
 let toastContainer = null;

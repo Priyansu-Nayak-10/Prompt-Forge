@@ -63,7 +63,7 @@ const loadCategories = async () => {
     try {
         const res = await fetchCategories();
         categories = res?.data || [];
-    } catch { /* non-fatal */ }
+    } catch {  }
 };
 
 // ---- Load prompts (admin sees ALL statuses) ----

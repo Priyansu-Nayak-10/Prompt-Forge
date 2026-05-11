@@ -1,9 +1,6 @@
 export const API_BASE_URL = '/api';
 
-/**
- * Central fetch wrapper with consistent error handling.
- * Returns parsed JSON or throws with server's error message.
- */
+
 const request = async (url, options = {}) => {
     const headers = { ...options.headers };
     if (!(options.body instanceof FormData)) {
@@ -22,10 +19,7 @@ const request = async (url, options = {}) => {
     return json;
 };
 
-/**
- * Fetch published prompts with full filter + pagination support.
- * @param {Object} params - { q, category, sort, page, limit }
- */
+
 export const fetchPrompts = async (params = {}) => {
     const query = new URLSearchParams();
     if (params.q)        query.set('q', params.q);
@@ -38,31 +32,22 @@ export const fetchPrompts = async (params = {}) => {
     return request(`${API_BASE_URL}/prompts${qs ? `?${qs}` : ''}`);
 };
 
-/**
- * Fetch a single prompt by slug.
- */
+
 export const fetchPromptBySlug = async (slug) => {
     return request(`${API_BASE_URL}/prompts/${encodeURIComponent(slug)}`);
 };
 
-/**
- * Fetch all categories.
- */
+
 export const fetchCategories = async () => {
     return request(`${API_BASE_URL}/prompts/discovery/categories`);
 };
 
-/**
- * Fetch all tools.
- */
+
 export const fetchTools = async () => {
     return request(`${API_BASE_URL}/prompts/discovery/tools`);
 };
 
-/**
- * Increment copy count — uses prompt UUID to avoid slug route collision.
- * @param {string} id - Prompt UUID
- */
+
 export const trackCopy = async (id) => {
     try {
         await request(`${API_BASE_URL}/prompts/${id}/copy`, { method: 'POST' });

@@ -1,6 +1,4 @@
-/**
- * theme.js — Light/Dark theme toggle with localStorage persistence
- */
+
 import { renderNavbar } from './components/navbar.js';
 import { renderFooter } from './components/footer.js';
 

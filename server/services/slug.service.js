@@ -1,10 +1,7 @@
 const { supabaseAdmin } = require('../config/supabase');
 const slugify = require('slugify'); // Requires: npm install slugify
 
-/**
- * Generates a unique SEO-friendly slug.
- * Safely handles concurrency and collision by appending a counter.
- */
+
 const generateUniqueSlug = async (title, table = 'prompts') => {
     const baseSlug = slugify(title, { lower: true, strict: true, trim: true });
     let uniqueSlug = baseSlug;
