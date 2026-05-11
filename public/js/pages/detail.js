@@ -1,5 +1,5 @@
 import { fetchPromptBySlug, trackCopy, toggleSave as apiToggleSave, fetchSavedPromptIds } from '../api.js';
-import { toast } from '../toast.js';
+import { toast } from '../core.js';
 import { isAuthenticated } from '../auth.js';
 
 const urlParams = new URLSearchParams(window.location.search);

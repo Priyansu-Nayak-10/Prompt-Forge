@@ -1,7 +1,7 @@
 import { fetchPrompts, fetchSavedPromptIds } from '../api.js';
 import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '../components/promptCard.js';
 import { isAuthenticated } from '../auth.js';
-import { toast } from '../toast.js';
+import { toast } from '../core.js';
 
 document.title = 'PromptForge — Premium AI Prompt Library';
 const grid = document.getElementById('trending-prompts-grid');

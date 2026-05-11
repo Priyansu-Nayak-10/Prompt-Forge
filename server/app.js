@@ -92,18 +92,12 @@ const promptsRoutes     = require('./routes/prompts.routes');
 const adminRoutes       = require('./routes/admin.routes');
 const uploadRoutes      = require('./routes/upload.routes');
 const sitemapRoutes     = require('./routes/sitemap.routes');
-const categoriesRoutes  = require('./routes/categories.routes');
-const submissionsRoutes = require('./routes/submissions.routes');
-const toolsRoutes       = require('./routes/tools.routes');
-const savesRoutes       = require('./routes/saves.routes');
+const userRoutes        = require('./routes/user.routes');
 
 app.use('/api/prompts',     promptsRoutes);
 app.use('/api/admin',       adminRoutes);
 app.use('/api/upload',      uploadRoutes);
-app.use('/api/categories',  categoriesRoutes);
-app.use('/api/submissions', submissionsRoutes);
-app.use('/api/tools',       toolsRoutes);
-app.use('/api/saves',       savesRoutes);
+app.use('/api/user',        userRoutes);
 app.use('/sitemap.xml',     sitemapRoutes);
 
 // ─── SPA Fallback ─────────────────────────────────────────────────────────────

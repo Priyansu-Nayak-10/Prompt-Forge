@@ -2,7 +2,7 @@
  * promptCard.js — Reusable prompt card with design system classes
  */
 import { trackCopy, toggleSave as apiToggleSave } from '../api.js';
-import { toast } from '../toast.js';
+import { toast } from '../core.js';
 import { isAuthenticated } from '../auth.js';
 
 export const promptCardHTML = (p) => `

@@ -2,7 +2,7 @@ import { fetchPrompts, fetchCategories, fetchSavedPromptIds } from '../api.js';
 import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '../components/promptCard.js';
 import { isAuthenticated } from '../auth.js';
 import { renderPagination } from '../components/pagination.js';
-import { showSkeletons, showEmpty, showError } from '../ui.js';
+import { showSkeletons, showEmpty, showError } from '../core.js';
 
 const grid       = document.getElementById('prompts-grid');
 const pagEl      = document.getElementById('pagination');

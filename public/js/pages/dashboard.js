@@ -1,6 +1,5 @@
 import { requireAdmin, signOut } from '../auth.js';
-import { toast } from '../toast.js';
-import { showSkeletons, showEmpty, showError, setButtonLoading } from '../ui.js';
+import { toast, showSkeletons, showEmpty, showError, setButtonLoading } from '../core.js';
 import { renderPagination } from '../components/pagination.js';
 import {
     fetchPrompts,

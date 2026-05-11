@@ -1,6 +1,5 @@
 import { submitPrompt, fetchCategories } from '../api.js';
-import { toast } from '../toast.js';
-import { setButtonLoading } from '../ui.js';
+import { toast, setButtonLoading } from '../core.js';
 import { requireAuth } from '../auth.js';
 
 const init = async () => {

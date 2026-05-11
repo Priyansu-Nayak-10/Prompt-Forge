@@ -49,14 +49,14 @@ export const fetchPromptBySlug = async (slug) => {
  * Fetch all categories.
  */
 export const fetchCategories = async () => {
-    return request(`${API_BASE_URL}/categories`);
+    return request(`${API_BASE_URL}/prompts/discovery/categories`);
 };
 
 /**
  * Fetch all tools.
  */
 export const fetchTools = async () => {
-    return request(`${API_BASE_URL}/tools`);
+    return request(`${API_BASE_URL}/prompts/discovery/tools`);
 };
 
 /**
@@ -77,32 +77,30 @@ const authHeader = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// --- Save / Bookmark APIs ---
+// --- User APIs (Saves, Submissions) ---
 
 export const fetchSavedPrompts = async () => {
-    return request(`${API_BASE_URL}/saves`, { headers: authHeader() });
+    return request(`${API_BASE_URL}/user/saves`, { headers: authHeader() });
 };
 
 export const fetchSavedPromptIds = async () => {
-    return request(`${API_BASE_URL}/saves/ids`, { headers: authHeader() });
+    return request(`${API_BASE_URL}/user/saves/ids`, { headers: authHeader() });
 };
 
 export const toggleSave = async (promptId) => {
-    return request(`${API_BASE_URL}/saves/toggle`, {
+    return request(`${API_BASE_URL}/user/saves/toggle`, {
         method: 'POST',
         headers: authHeader(),
         body: JSON.stringify({ promptId })
     });
 };
 
-// --- User Submissions APIs ---
-
 export const fetchUserSubmissions = async () => {
-    return request(`${API_BASE_URL}/submissions`, { headers: authHeader() });
+    return request(`${API_BASE_URL}/user/submissions`, { headers: authHeader() });
 };
 
 export const submitPrompt = async (data) => {
-    return request(`${API_BASE_URL}/submissions`, {
+    return request(`${API_BASE_URL}/user/submissions`, {
         method: 'POST',
         headers: authHeader(),
         body: JSON.stringify(data),
