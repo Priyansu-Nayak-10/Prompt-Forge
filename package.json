@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "AI Prompt Discovery Platform",
   "main": "server/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server/server.js",
+    "build": "npm install --omit=dev",
     "dev": "nodemon server/server.js"
   },
   "keywords": ["ai", "prompts", "search"],
@@ -12,10 +16,12 @@
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.105.4",
+    "compression": "^1.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.1",
+    "helmet": "^8.1.0",
     "multer": "^2.1.1",
     "slugify": "^1.6.9",
     "zod": "^4.4.3"

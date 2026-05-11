@@ -1,0 +1,54 @@
+# render.yaml — Render Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+#
+# This file lets Render auto-configure your Web Service from GitHub.
+# When you connect this repo on render.com, it reads this file and
+# pre-fills the service settings for you.
+
+services:
+  - type: web
+    name: prompt-forge
+    runtime: node
+    region: oregon          # Change to: frankfurt, singapore, ohio as needed
+
+    # ── Build & Start ───────────────────────────────────────────────────────
+    buildCommand: npm install --omit=dev
+    startCommand: node server/server.js
+
+    # ── Node Version ────────────────────────────────────────────────────────
+    # Must match the engines.node field in package.json
+    numInstances: 1
+    plan: free              # Change to: starter, standard as needed
+
+    # ── Health Check ────────────────────────────────────────────────────────
+    # Render uses this endpoint to confirm the service is up.
+    healthCheckPath: /api/health
+
+    # ── Auto-Deploy ─────────────────────────────────────────────────────────
+    # Automatically redeploy when you push to the main branch.
+    autoDeploy: true
+    branch: main
+
+    # ── Environment Variables ────────────────────────────────────────────────
+    # Add values in the Render dashboard under: Service → Environment
+    # DO NOT hardcode real secrets here — this file is committed to git.
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 10000
+
+      # Set this to your actual Render URL after first deploy.
+      # Example: https://prompt-forge.onrender.com
+      - key: PUBLIC_URL
+        sync: false         # Render will ask you to set this manually
+
+      - key: SUPABASE_URL
+        sync: false         # Set in Render dashboard — never commit real values
+
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
