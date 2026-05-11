@@ -17,6 +17,17 @@ export const signIn = async (email, password) => {
 };
 
 /**
+ * Register a new user with email + password.
+ * Supabase sends a confirmation email automatically.
+ * Does NOT auto-login — user must confirm email first.
+ */
+export const signUp = async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
+};
+
+/**
  * Sign out and clean up local state.
  */
 export const signOut = async () => {
