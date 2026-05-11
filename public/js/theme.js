@@ -21,20 +21,20 @@ const saved = localStorage.getItem(STORAGE_KEY) || 'dark';
 applyTheme(saved);
 
 // Wire toggle buttons after DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-  renderNavbar();
-  renderFooter();
+renderNavbar();
+renderFooter();
 
-  // Also need to re-apply theme icons to dynamically added toggles
-  const current = html.getAttribute('data-theme') || 'dark';
-  applyTheme(current);
+// Apply theme icons to toggles
+const current = html.getAttribute('data-theme') || 'dark';
+applyTheme(current);
 
-  document.querySelectorAll('.theme-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const activeTheme = html.getAttribute('data-theme') || 'dark';
-      applyTheme(activeTheme === 'dark' ? 'light' : 'dark');
-    });
-  });
+// Wire toggle buttons
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.theme-toggle');
+  if (btn) {
+    const activeTheme = html.getAttribute('data-theme') || 'dark';
+    applyTheme(activeTheme === 'dark' ? 'light' : 'dark');
+  }
 });
 
 export { applyTheme };
