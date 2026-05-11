@@ -86,7 +86,15 @@ CREATE TABLE profiles (
 CREATE TABLE submissions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT NOT NULL,
+    description TEXT,
+    prompt_text TEXT NOT NULL,
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    tags TEXT[],
+    supported_tools TEXT[],
+    difficulty TEXT CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
+    prompt_type TEXT CHECK (prompt_type IN ('text-to-image', 'text-to-text', 'text-to-video')),
     status TEXT CHECK (status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+    rejection_reason TEXT,
     user_id UUID REFERENCES auth.users(id),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

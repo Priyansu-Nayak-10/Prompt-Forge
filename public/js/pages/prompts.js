@@ -1,5 +1,6 @@
-import { fetchPrompts, fetchCategories } from '../api.js';
-import { promptCardHTML, attachCopyHandlers } from '../components/promptCard.js';
+import { fetchPrompts, fetchCategories, fetchSavedPromptIds } from '../api.js';
+import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '../components/promptCard.js';
+import { isAuthenticated } from '../auth.js';
 import { renderPagination } from '../components/pagination.js';
 import { showSkeletons, showEmpty, showError } from '../ui.js';
 
@@ -14,6 +15,7 @@ let state = {
     q:        '',
     sort:     'latest',
     category: '',
+    tool:     '',
     page:     1,
     limit:    16,
 };
@@ -24,6 +26,7 @@ const initFromURL = () => {
     if (p.get('q'))        { state.q = p.get('q'); searchInput.value = state.q; }
     if (p.get('sort'))     { state.sort = p.get('sort'); sortSelect.value = state.sort; }
     if (p.get('category')) { state.category = p.get('category'); }
+    if (p.get('tool'))     { state.tool = p.get('tool'); }
     if (p.get('page'))     { state.page = parseInt(p.get('page')) || 1; }
 };
 
@@ -33,6 +36,7 @@ const pushURL = () => {
     if (state.q)        p.set('q', state.q);
     if (state.sort !== 'latest') p.set('sort', state.sort);
     if (state.category) p.set('category', state.category);
+    if (state.tool)     p.set('tool', state.tool);
     if (state.page > 1) p.set('page', String(state.page));
     history.replaceState({}, '', `${location.pathname}${p.size ? '?' + p : ''}`);
 };
@@ -54,8 +58,19 @@ const loadPrompts = async () => {
             return;
         }
 
-        grid.innerHTML = res.data.map(promptCardHTML).join('');
+        let savedIds = [];
+        if (isAuthenticated()) {
+            try {
+                const saveRes = await fetchSavedPromptIds();
+                if (saveRes.success) savedIds = saveRes.data || [];
+            } catch (e) {
+                console.warn('Failed to fetch saved IDs', e);
+            }
+        }
+
+        grid.innerHTML = res.data.map(p => promptCardHTML({ ...p, isSaved: savedIds.includes(p.id) })).join('');
         attachCopyHandlers(grid);
+        attachSaveHandlers(grid);
         renderPagination(pagEl, res.metadata, (newPage) => {
             state.page = newPage;
             pushURL();
@@ -123,6 +138,7 @@ sortSelect.addEventListener('change', () => {
 });
 
 // ---- Init ----
+document.title = 'Explore AI Prompts — PromptForge';
 initFromURL();
 loadCategories();
 loadPrompts();

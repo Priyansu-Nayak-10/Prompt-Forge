@@ -58,4 +58,105 @@ router.delete(
     asyncHandler(adminController.deletePrompt)
 );
 
+// GET /api/admin/submissions — list all submissions
+router.get('/submissions', asyncHandler(async (req, res) => {
+    const { data, error } = await supabaseAdmin
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ success: true, data });
+}));
+
+// PUT /api/admin/submissions/:id — update submission status (approve/reject)
+router.put('/submissions/:id', asyncHandler(async (req, res) => {
+    const { status, rejection_reason } = req.body;
+    const { id } = req.params;
+
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+
+    const { data, error } = await supabaseAdmin
+        .from('submissions')
+        .update({ status, rejection_reason })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) throw error;
+
+    // If approved, automatically create the prompt in the prompts table
+    if (status === 'approved') {
+        // Need to fetch user profile or create a slug
+        const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Date.now().toString().slice(-4);
+        
+        const { error: promptError } = await supabaseAdmin
+            .from('prompts')
+            .insert([{
+                title: data.title,
+                slug: slug,
+                description: data.description,
+                prompt_text: data.prompt_text,
+                category_id: data.category_id,
+                tags: data.tags,
+                supported_tools: data.supported_tools,
+                difficulty: data.difficulty,
+                prompt_type: data.prompt_type,
+                status: 'published'
+            }]);
+        
+        if (promptError) console.error('Failed to auto-publish approved submission:', promptError);
+    }
+
+    res.json({ success: true, data });
+}));
+
+// GET /api/admin/users
+router.get('/users', asyncHandler(async (req, res) => {
+    const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json({ success: true, data });
+}));
+
+// GET /api/admin/analytics
+router.get('/analytics', asyncHandler(async (req, res) => {
+    // Basic stats: counts from tables
+    const [promptsRes, subsRes, usersRes, savesRes, viewsRes, copiesRes] = await Promise.all([
+        supabaseAdmin.from('prompts').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('submissions').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('saves').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.rpc('get_total_views'), // If this exists, otherwise sum in JS
+        supabaseAdmin.rpc('get_total_copies')
+    ]);
+
+    // fallback for views/copies
+    let totalViews = 0;
+    let totalCopies = 0;
+    
+    const { data: prompts } = await supabaseAdmin.from('prompts').select('view_count, copy_count');
+    if (prompts) {
+        totalViews = prompts.reduce((acc, p) => acc + (p.view_count || 0), 0);
+        totalCopies = prompts.reduce((acc, p) => acc + (p.copy_count || 0), 0);
+    }
+
+    res.json({
+        success: true,
+        data: {
+            total_prompts: promptsRes.count || 0,
+            total_submissions: subsRes.count || 0,
+            total_users: usersRes.count || 0,
+            total_saves: savesRes.count || 0,
+            total_views: totalViews,
+            total_copies: totalCopies
+        }
+    });
+}));
+
 module.exports = router;

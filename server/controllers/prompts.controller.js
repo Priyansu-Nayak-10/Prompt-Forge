@@ -1,8 +1,8 @@
 const promptService = require('../services/prompt.service');
 
 const getPrompts = async (req, res) => {
-    const { page, limit, q, category, sort } = req.query;
-    const result = await promptService.getPublishedPrompts({ page, limit, q, category, sort });
+    const { page, limit, q, category, sort, tool } = req.query;
+    const result = await promptService.getPublishedPrompts({ page, limit, q, category, sort, tool });
     res.status(200).json({ success: true, data: result.data, metadata: result.metadata });
 };
 

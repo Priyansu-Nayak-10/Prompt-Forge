@@ -17,7 +17,7 @@ const generateSitemap = async (req, res) => {
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
     // Base URL
-    const baseUrl = process.env.PUBLIC_URL || 'https://promptvault.com';
+    const baseUrl = process.env.PUBLIC_URL || 'http://localhost:3000';
     
     // Static Routes
     xml += `  <url>\n    <loc>${baseUrl}/</loc>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;

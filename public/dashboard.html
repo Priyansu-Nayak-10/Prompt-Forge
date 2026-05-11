@@ -85,6 +85,26 @@
     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
     Prompts
   </button>
+  <button class="sidebar-link" data-section="submissions">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    Submissions
+  </button>
+  <button class="sidebar-link" data-section="users">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+    Users
+  </button>
+  <button class="sidebar-link" data-section="categories">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+    Categories
+  </button>
+  <button class="sidebar-link" data-section="tools">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    Tools
+  </button>
+  <button class="sidebar-link" data-section="analytics">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+    Analytics
+  </button>
 
   <div class="sidebar-section" style="margin-top:1rem;">Links</div>
   <a href="/" target="_blank" class="sidebar-link">
@@ -106,16 +126,17 @@
 </aside>
 
 <main class="main">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Prompts</h1>
-      <p class="page-subtitle">Create, edit, and manage your AI prompt library.</p>
+  <div id="section-prompts" class="dashboard-section active">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Prompts</h1>
+        <p class="page-subtitle">Create, edit, and manage your AI prompt library.</p>
+      </div>
+      <button id="create-btn" class="btn btn-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Prompt
+      </button>
     </div>
-    <button id="create-btn" class="btn btn-primary">
-      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      New Prompt
-    </button>
-  </div>
 
   <!-- Stats -->
   <div class="stats-row">
@@ -156,8 +177,89 @@
     <div id="prompts-table-body"></div>
   </div>
 
-  <!-- Pagination -->
-  <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:1.5rem;" id="admin-pagination"></div>
+    <!-- Pagination -->
+    <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-top:1.5rem;" id="admin-pagination"></div>
+  </div>
+
+  <div id="section-submissions" class="dashboard-section" style="display:none;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Submissions</h1>
+        <p class="page-subtitle">Review and manage community prompt submissions.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">
+        <span>Title</span>
+        <span>Status</span>
+        <span>Date</span>
+        <span>Actions</span>
+      </div>
+      <div id="submissions-table-body"></div>
+    </div>
+  </div>
+
+  <div id="section-users" class="dashboard-section" style="display:none;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Users</h1>
+        <p class="page-subtitle">Manage registered users and roles.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header" style="grid-template-columns: 1fr 100px 140px;">
+        <span>Email</span>
+        <span>Role</span>
+        <span>Joined</span>
+      </div>
+      <div id="users-table-body"></div>
+    </div>
+  </div>
+
+  <div id="section-categories" class="dashboard-section" style="display:none;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Categories</h1>
+        <p class="page-subtitle">Manage prompt categories.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header" style="grid-template-columns: 80px 1fr 140px;">
+        <span>Icon</span>
+        <span>Name</span>
+        <span>Slug</span>
+      </div>
+      <div id="categories-table-body"></div>
+    </div>
+  </div>
+
+  <div id="section-tools" class="dashboard-section" style="display:none;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Tools</h1>
+        <p class="page-subtitle">Manage supported AI tools.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header" style="grid-template-columns: 1fr 140px;">
+        <span>Name</span>
+        <span>Slug</span>
+      </div>
+      <div id="tools-table-body"></div>
+    </div>
+  </div>
+
+  <div id="section-analytics" class="dashboard-section" style="display:none;">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Analytics</h1>
+        <p class="page-subtitle">Platform overview and statistics.</p>
+      </div>
+    </div>
+    <div class="stats-row" id="analytics-grid">
+      <!-- Populated via JS -->
+    </div>
+  </div>
 </main>
 
 <!-- Form Modal -->

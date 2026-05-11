@@ -5,9 +5,13 @@ export const API_BASE_URL = '/api';
  * Returns parsed JSON or throws with server's error message.
  */
 const request = async (url, options = {}) => {
+    const headers = { ...options.headers };
+    if (!(options.body instanceof FormData)) {
+        headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
     const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json', ...options.headers },
         ...options,
+        headers,
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -49,6 +53,13 @@ export const fetchCategories = async () => {
 };
 
 /**
+ * Fetch all tools.
+ */
+export const fetchTools = async () => {
+    return request(`${API_BASE_URL}/tools`);
+};
+
+/**
  * Increment copy count — uses prompt UUID to avoid slug route collision.
  * @param {string} id - Prompt UUID
  */
@@ -61,12 +72,44 @@ export const trackCopy = async (id) => {
     }
 };
 
-// --- Admin APIs (requires Authorization header) ---
-
 const authHeader = () => {
     const token = localStorage.getItem('sb_access_token');
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
+
+// --- Save / Bookmark APIs ---
+
+export const fetchSavedPrompts = async () => {
+    return request(`${API_BASE_URL}/saves`, { headers: authHeader() });
+};
+
+export const fetchSavedPromptIds = async () => {
+    return request(`${API_BASE_URL}/saves/ids`, { headers: authHeader() });
+};
+
+export const toggleSave = async (promptId) => {
+    return request(`${API_BASE_URL}/saves/toggle`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: JSON.stringify({ promptId })
+    });
+};
+
+// --- User Submissions APIs ---
+
+export const fetchUserSubmissions = async () => {
+    return request(`${API_BASE_URL}/submissions`, { headers: authHeader() });
+};
+
+export const submitPrompt = async (data) => {
+    return request(`${API_BASE_URL}/submissions`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: JSON.stringify(data),
+    });
+};
+
+// --- Admin APIs (requires Authorization header) ---
 
 export const adminCreatePrompt = async (data) => {
     return request(`${API_BASE_URL}/admin/prompts`, {
@@ -75,6 +118,27 @@ export const adminCreatePrompt = async (data) => {
         body: JSON.stringify(data),
     });
 };
+
+export const fetchAdminSubmissions = async () => {
+    return request(`${API_BASE_URL}/admin/submissions`, { headers: authHeader() });
+};
+
+export const updateSubmissionStatus = async (id, status, rejection_reason = '') => {
+    return request(`${API_BASE_URL}/admin/submissions/${id}`, {
+        method: 'PUT',
+        headers: authHeader(),
+        body: JSON.stringify({ status, rejection_reason }),
+    });
+};
+
+export const fetchAdminUsers = async () => {
+    return request(`${API_BASE_URL}/admin/users`, { headers: authHeader() });
+};
+
+export const fetchAdminAnalytics = async () => {
+    return request(`${API_BASE_URL}/admin/analytics`, { headers: authHeader() });
+};
+
 
 export const adminUpdatePrompt = async (id, data) => {
     return request(`${API_BASE_URL}/admin/prompts/${id}`, {

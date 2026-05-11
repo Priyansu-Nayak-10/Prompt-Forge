@@ -4,7 +4,7 @@ const { generateUniqueSlug } = require('./slug.service');
 /**
  * Fetch all published prompts with pagination, search, and filtering
  */
-const getPublishedPrompts = async ({ page, limit, q, category, sort }) => {
+const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => {
     const start = (page - 1) * limit;
     const end = start + limit - 1;
 
@@ -15,6 +15,11 @@ const getPublishedPrompts = async ({ page, limit, q, category, sort }) => {
 
     if (category) {
         query = query.eq('category_id', category);
+    }
+    
+    if (tool) {
+        // Assuming supported_tools is a JSONB array or comma separated string
+        query = query.ilike('supported_tools', `%${tool}%`);
     }
 
     if (q) {

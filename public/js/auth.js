@@ -51,7 +51,7 @@ export const getCachedUser = () => {
  * Verifies session is still valid by calling Supabase.
  * Use on page load for protected pages.
  */
-export const requireAdmin = async (redirectTo = '/login.html') => {
+export const requireAuth = async (redirectTo = '/login.html') => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
         window.location.href = redirectTo;
@@ -62,10 +62,25 @@ export const requireAdmin = async (redirectTo = '/login.html') => {
     return session.user;
 };
 
+// Alias for legacy code or specific admin pages (could be extended later with role check)
+export const requireAdmin = requireAuth;
+
 /**
  * Redirects away from login page if already authenticated.
  */
-export const redirectIfLoggedIn = async (to = '/dashboard.html') => {
+export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) window.location.href = to;
+    if (session) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next') || defaultTo;
+        window.location.href = nextUrl;
+    }
+};
+
+/**
+ * Returns true if the user has a local session token.
+ * Useful for synchronous UI checks before sensitive actions.
+ */
+export const isAuthenticated = () => {
+    return !!localStorage.getItem('sb_access_token');
 };

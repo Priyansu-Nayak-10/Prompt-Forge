@@ -1,5 +1,6 @@
-import { fetchPromptBySlug, trackCopy } from '../api.js';
+import { fetchPromptBySlug, trackCopy, toggleSave as apiToggleSave, fetchSavedPromptIds } from '../api.js';
 import { toast } from '../toast.js';
+import { isAuthenticated } from '../auth.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const slug = urlParams.get('slug');
@@ -33,6 +34,18 @@ if (!slug) {
         const diffColor = { beginner: '#4ade80', intermediate: '#a78bfa', advanced: '#fb923c' };
         const dc = diffColor[p.difficulty] || '#a78bfa';
 
+        let isSaved = false;
+        if (isAuthenticated()) {
+            try {
+                const saveRes = await fetchSavedPromptIds();
+                if (saveRes.success && saveRes.data.includes(p.id)) {
+                    isSaved = true;
+                }
+            } catch (e) {
+                console.warn('Failed to fetch saved IDs', e);
+            }
+        }
+
         content.innerHTML = `
             ${p.preview_image_url
                 ? `<img src="${p.preview_image_url}" alt="${p.title}" class="detail-hero" loading="eager">`
@@ -55,6 +68,10 @@ if (!slug) {
                 <span class="meta-item">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     <span id="copy-cnt">${p.copy_count || 0}</span> copies
+                </span>
+                <span class="meta-item save-detail-btn" style="cursor:pointer;" data-id="${p.id}">
+                    <svg class="save-icon" width="14" height="14" fill="${isSaved ? '#f43f5e' : 'none'}" stroke="${isSaved ? '#f43f5e' : 'currentColor'}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    <span>Save</span>
                 </span>
             </div>
 
@@ -90,7 +107,44 @@ if (!slug) {
         loader.style.display = 'none';
         content.style.display = 'block';
 
+        const saveBtn = document.querySelector('.save-detail-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                if (!isAuthenticated()) {
+                    toast.error('Please login to save prompts');
+                    setTimeout(() => {
+                        window.location.href = '/login.html?next=' + encodeURIComponent(window.location.href);
+                    }, 1500);
+                    return;
+                }
+                try {
+                    const promptId = saveBtn.dataset.id;
+                    const res = await apiToggleSave(promptId);
+                    const icon = saveBtn.querySelector('.save-icon');
+                    if (res.saved) {
+                        icon.setAttribute('fill', '#f43f5e');
+                        icon.setAttribute('stroke', '#f43f5e');
+                        toast.success('Prompt saved');
+                    } else {
+                        icon.setAttribute('fill', 'none');
+                        icon.setAttribute('stroke', 'currentColor');
+                        toast.success('Prompt removed from saves');
+                    }
+                } catch (err) {
+                    toast.error(err.message || 'Failed to save prompt');
+                }
+            });
+        }
+
         document.getElementById('main-copy-btn').addEventListener('click', async () => {
+            if (!isAuthenticated()) {
+                toast.error('Please login to copy prompts');
+                setTimeout(() => {
+                    window.location.href = '/login.html?next=' + encodeURIComponent(window.location.href);
+                }, 1500);
+                return;
+            }
+
             const btn = document.getElementById('main-copy-btn');
             await navigator.clipboard.writeText(p.prompt_text);
             toast.success('Prompt copied!');

@@ -9,6 +9,10 @@ import {
     adminDeletePrompt,
     adminUploadImage,
     fetchCategories,
+    fetchAdminSubmissions,
+    updateSubmissionStatus,
+    fetchAdminUsers,
+    fetchAdminAnalytics
 } from '../api.js';
 
 // ---- Auth guard ----
@@ -22,10 +26,10 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     window.location.href = '/login.html';
 });
 
-// ---- State ----
 let state = { q: '', page: 1, limit: 12 };
 let editingId = null;
 let categories = [];
+let currentSection = 'prompts';
 
 // ---- DOM refs ----
 const tableBody     = document.getElementById('prompts-table-body');
@@ -264,6 +268,178 @@ adminSearch.addEventListener('input', () => {
     }, 350);
 });
 
+// ---- Load Submissions ----
+const loadSubmissions = async () => {
+    const subTableBody = document.getElementById('submissions-table-body');
+    subTableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Loading...</div>`;
+    
+    try {
+        const res = await fetchAdminSubmissions();
+        const subs = res.data || [];
+        
+        if (subs.length === 0) {
+            subTableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">No submissions found.</div>`;
+            return;
+        }
+
+        subTableBody.innerHTML = subs.map(s => `
+            <div class="table-row-item">
+                <div>
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px;" title="${s.title}">${s.title}</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;max-height:3em;overflow:hidden;text-overflow:ellipsis;" title="${s.prompt_text}">${s.prompt_text.substring(0, 50)}...</div>
+                </div>
+                <div><span class="badge badge-${s.status}">${s.status}</span></div>
+                <div style="font-size:0.875rem;color:var(--text-muted);">${new Date(s.created_at).toLocaleDateString()}</div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    ${s.status === 'pending' ? `
+                        <button class="btn btn-primary btn-sm approve-btn" data-id="${s.id}">Approve</button>
+                        <button class="btn btn-danger btn-sm reject-btn" data-id="${s.id}">Reject</button>
+                    ` : `
+                        <span style="font-size:0.8rem;color:var(--text-muted)">${s.rejection_reason || ''}</span>
+                    `}
+                </div>
+            </div>
+        `).join('');
+
+        subTableBody.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Approve and publish this submission?')) return;
+                const restore = setButtonLoading(btn, '...');
+                try {
+                    await updateSubmissionStatus(btn.dataset.id, 'approved');
+                    toast.success('Submission approved and published!');
+                    loadSubmissions();
+                } catch (e) {
+                    toast.error(e.message);
+                    restore();
+                }
+            });
+        });
+
+        subTableBody.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const reason = prompt('Enter rejection reason (optional):');
+                if (reason === null) return;
+                const restore = setButtonLoading(btn, '...');
+                try {
+                    await updateSubmissionStatus(btn.dataset.id, 'rejected', reason);
+                    toast.success('Submission rejected.');
+                    loadSubmissions();
+                } catch (e) {
+                    toast.error(e.message);
+                    restore();
+                }
+            });
+        });
+    } catch (e) {
+        subTableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:#f87171;font-size:0.875rem;">${e.message}</div>`;
+        toast.error(e.message);
+    }
+};
+
+// ---- Load Users ----
+const loadUsers = async () => {
+    const tableBody = document.getElementById('users-table-body');
+    tableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Loading...</div>`;
+    try {
+        const res = await fetchAdminUsers();
+        if (!res.data || res.data.length === 0) {
+            tableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">No users found.</div>`;
+            return;
+        }
+        tableBody.innerHTML = res.data.map(u => `
+            <div class="table-row-item" style="grid-template-columns: 1fr 100px 140px;">
+                <div><div style="font-size:0.875rem;font-weight:600;color:var(--text);">${u.email}</div></div>
+                <div><span class="badge badge-${u.role === 'admin' ? 'advanced' : 'beginner'}">${u.role}</span></div>
+                <div style="font-size:0.875rem;color:var(--text-muted);">${new Date(u.created_at).toLocaleDateString()}</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        tableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:#f87171;font-size:0.875rem;">${e.message}</div>`;
+    }
+};
+
+// ---- Load Categories (Admin View) ----
+const loadAdminCategories = async () => {
+    const tableBody = document.getElementById('categories-table-body');
+    if (categories.length === 0) {
+        tableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">No categories found.</div>`;
+        return;
+    }
+    tableBody.innerHTML = categories.map(c => `
+        <div class="table-row-item" style="grid-template-columns: 80px 1fr 140px;">
+            <div style="font-size:1.25rem;">${c.icon || '📁'}</div>
+            <div style="font-size:0.875rem;font-weight:600;color:var(--text);">${c.name}</div>
+            <div style="font-size:0.875rem;color:var(--text-muted);">${c.slug}</div>
+        </div>
+    `).join('');
+};
+
+// ---- Load Tools ----
+const loadTools = async () => {
+    const tableBody = document.getElementById('tools-table-body');
+    // Fetching from a hypothetical endpoint or just showing empty state if not yet implemented
+    tableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Tools management coming soon.</div>`;
+};
+
+// ---- Load Analytics ----
+const loadAnalytics = async () => {
+    const grid = document.getElementById('analytics-grid');
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Loading analytics...</div>`;
+    try {
+        const res = await fetchAdminAnalytics();
+        const d = res.data || {};
+        grid.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value" style="color:#a78bfa;">${d.total_prompts || 0}</div>
+                <div class="stat-label">Total Prompts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#f43f5e;">${d.total_saves || 0}</div>
+                <div class="stat-label">Total Saves</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#4ade80;">${d.total_users || 0}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#fb923c;">${d.total_submissions || 0}</div>
+                <div class="stat-label">Pending Submissions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#38bdf8;">${d.total_views || 0}</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color:#c084fc;">${d.total_copies || 0}</div>
+                <div class="stat-label">Total Copies</div>
+            </div>
+        `;
+    } catch (e) {
+        grid.innerHTML = `<div style="grid-column:1/-1;padding:2rem;text-align:center;color:#f87171;font-size:0.875rem;">${e.message}</div>`;
+    }
+};
+
+// ---- Tab Switching ----
+document.querySelectorAll('.sidebar-link[data-section]').forEach(link => {
+    link.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar-link[data-section]').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+        
+        link.classList.add('active');
+        currentSection = link.dataset.section;
+        document.getElementById(`section-${currentSection}`).style.display = 'block';
+        
+        if (currentSection === 'prompts') loadPrompts();
+        else if (currentSection === 'submissions') loadSubmissions();
+        else if (currentSection === 'users') loadUsers();
+        else if (currentSection === 'categories') loadAdminCategories();
+        else if (currentSection === 'tools') loadTools();
+        else if (currentSection === 'analytics') loadAnalytics();
+    });
+});
+
 // ---- Init ----
+document.title = 'Admin Dashboard — PromptForge';
 await loadCategories();
 loadPrompts();

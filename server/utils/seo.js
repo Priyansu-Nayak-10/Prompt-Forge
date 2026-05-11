@@ -3,7 +3,7 @@
  * @param {string} path - The path of the page (e.g., /prompts/cinematic-portrait)
  */
 const generateCanonicalUrl = (path) => {
-    const baseUrl = process.env.PUBLIC_URL || 'https://promptvault.com';
+    const baseUrl = process.env.PUBLIC_URL || 'http://localhost:3000';
     return `${baseUrl}${path}`;
 };
 

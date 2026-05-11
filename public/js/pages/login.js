@@ -37,7 +37,9 @@ form.addEventListener('submit', async (e) => {
 
     try {
         await signIn(email, password);
-        window.location.href = '/dashboard.html';
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next') || '/dashboard.html';
+        window.location.href = nextUrl;
     } catch (err) {
         errorMsg.textContent = err.message?.includes('Invalid login')
             ? 'Incorrect email or password.'

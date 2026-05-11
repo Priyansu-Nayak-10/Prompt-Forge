@@ -20,6 +20,7 @@ const paginationSchema = z.object({
     limit: z.coerce.number().int().min(1).max(100).default(20),
     q: z.string().optional(),
     category: z.string().uuid().optional(),
+    tool: z.string().optional(),
     sort: z.enum(['latest', 'trending']).default('latest')
 });
 

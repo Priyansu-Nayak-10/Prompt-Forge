@@ -1,6 +1,8 @@
 /**
  * theme.js — Light/Dark theme toggle with localStorage persistence
  */
+import { renderNavbar } from './components/navbar.js';
+import { renderFooter } from './components/footer.js';
 
 const STORAGE_KEY = 'pf-theme';
 const html = document.documentElement;
@@ -22,10 +24,17 @@ applyTheme(saved);
 
 // Wire toggle buttons after DOM ready
 document.addEventListener('DOMContentLoaded', () => {
+  renderNavbar();
+  renderFooter();
+
+  // Also need to re-apply theme icons to dynamically added toggles
+  const current = html.getAttribute('data-theme') || 'dark';
+  applyTheme(current);
+
   document.querySelectorAll('.theme-toggle').forEach(btn => {
     btn.addEventListener('click', () => {
-      const current = html.getAttribute('data-theme') || 'dark';
-      applyTheme(current === 'dark' ? 'light' : 'dark');
+      const activeTheme = html.getAttribute('data-theme') || 'dark';
+      applyTheme(activeTheme === 'dark' ? 'light' : 'dark');
     });
   });
 });
