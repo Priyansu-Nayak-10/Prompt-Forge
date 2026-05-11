@@ -1,4 +1,4 @@
-import { fetchCategories, fetchTools } from '../api.js';
+import { fetchCategories, fetchTools } from '/js/api.js';
 
 const init = async () => {
     const categoriesGrid = document.getElementById('categories-grid');

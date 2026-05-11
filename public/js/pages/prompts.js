@@ -1,8 +1,8 @@
-import { fetchPrompts, fetchCategories, fetchSavedPromptIds } from '../api.js';
-import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '../components/promptCard.js';
-import { isAuthenticated } from '../auth.js';
-import { renderPagination } from '../components/pagination.js';
-import { showSkeletons, showEmpty, showError } from '../core.js';
+import { fetchPrompts, fetchCategories, fetchSavedPromptIds } from '/js/api.js';
+import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '/js/components/promptCard.js';
+import { isAuthenticated } from '/js/auth.js';
+import { renderPagination } from '/js/components/pagination.js';
+import { showSkeletons, showEmpty, showError } from '/js/core.js';
 
 const grid       = document.getElementById('prompts-grid');
 const pagEl      = document.getElementById('pagination');

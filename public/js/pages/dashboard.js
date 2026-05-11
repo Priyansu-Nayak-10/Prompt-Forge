@@ -1,18 +1,19 @@
-import { requireAdmin, signOut } from '../auth.js';
-import { toast, showSkeletons, showEmpty, showError, setButtonLoading } from '../core.js';
-import { renderPagination } from '../components/pagination.js';
+import { requireAdmin, signOut } from '/js/auth.js';
+import { toast, showSkeletons, showEmpty, showError, setButtonLoading } from '/js/core.js';
+import { renderPagination } from '/js/components/pagination.js';
 import {
     fetchPrompts,
     adminCreatePrompt,
     adminUpdatePrompt,
     adminDeletePrompt,
     adminUploadImage,
-    fetchCategories,
     fetchAdminSubmissions,
     updateSubmissionStatus,
     fetchAdminUsers,
-    fetchAdminAnalytics
-} from '../api.js';
+    fetchAdminAnalytics,
+    fetchCategories,
+    fetchTools
+} from '/js/api.js';
 
 // ---- Auth guard ----
 const user = await requireAdmin('/login.html');

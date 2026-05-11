@@ -1,6 +1,6 @@
-import { submitPrompt, fetchCategories } from '../api.js';
-import { toast, setButtonLoading } from '../core.js';
-import { requireAuth } from '../auth.js';
+import { submitPrompt, fetchCategories } from '/js/api.js';
+import { toast, setButtonLoading } from '/js/core.js';
+import { requireAuth } from '/js/auth.js';
 
 const init = async () => {
     document.title = 'Submit Prompt — PromptForge';

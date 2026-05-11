@@ -1,5 +1,5 @@
-import { signIn, redirectIfLoggedIn } from '../auth.js';
-import { setButtonLoading } from '../core.js';
+import { signIn, redirectIfLoggedIn } from '/js/auth.js';
+import { setButtonLoading } from '/js/core.js';
 
 // Redirect to dashboard if already logged in
 await redirectIfLoggedIn('/dashboard.html');

@@ -1,6 +1,6 @@
 
-import { renderNavbar } from './components/navbar.js';
-import { renderFooter } from './components/footer.js';
+import { renderNavbar } from '/js/components/navbar.js';
+import { renderFooter } from '/js/components/footer.js';
 
 const STORAGE_KEY = 'pf-theme';
 const html = document.documentElement;

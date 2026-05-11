@@ -1,6 +1,7 @@
-import { requireAuth, signOut } from '../auth.js';
-import { fetchSavedPrompts } from '../api.js';
-import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '../components/promptCard.js';
+import { requireAuth, signOut } from '/js/auth.js';
+import { fetchSavedPrompts, fetchUserSubmissions } from '/js/api.js';
+import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '/js/components/promptCard.js';
+import { toast } from '/js/core.js';
 
 let user = null;
 
