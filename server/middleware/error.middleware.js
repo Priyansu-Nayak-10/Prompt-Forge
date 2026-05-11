@@ -1,28 +1,31 @@
-// Centralized Error Handling Middleware
-const globalErrorHandler = (err, req, res, next) => {
-    console.error(`[Error] ${err.name}:`, err.message);
+const logger = require('../utils/logger');
 
-    // Default error structure
-    let statusCode = err.statusCode || 500;
+const globalErrorHandler = (err, req, res, next) => {
+    const statusCode = err.statusCode || (err.name === 'ZodError' ? 400 : 500);
+
     let message = err.message || 'Internal Server Error';
 
-    // Prevent leaking internal stack traces in production
-    if (process.env.NODE_ENV === 'production' && statusCode === 500) {
-        message = 'An unexpected error occurred. Please try again later.';
+    if (err.name === 'ZodError') {
+        message = err.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
     }
 
-    // Handle Supabase/Zod specific errors here if needed
-    if (err.name === 'ZodError') {
-        statusCode = 400;
-        message = err.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ');
+    logger.error({
+        err: { name: err.name, message: err.message, stack: err.stack },
+        req: { method: req.method, url: req.url, ip: req.ip },
+        statusCode,
+    }, `[${statusCode}] ${req.method} ${req.url} — ${message}`);
+
+    // Never leak stack traces in production
+    if (process.env.NODE_ENV === 'production' && statusCode === 500) {
+        message = 'An unexpected error occurred. Please try again later.';
     }
 
     res.status(statusCode).json({
         success: false,
         error: {
             message,
-            ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
-        }
+            ...(process.env.NODE_ENV !== 'production' && statusCode !== 400 && { stack: err.stack }),
+        },
     });
 };
 

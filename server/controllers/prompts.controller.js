@@ -17,11 +17,18 @@ const getPrompt = async (req, res) => {
     res.status(200).json({ success: true, data: prompt });
 };
 
-// Now uses :id (UUID) instead of slug — avoids route conflict with /:slug
+// Increment copy count (uses prompt UUID, not slug)
 const incrementCopy = async (req, res) => {
     const { id } = req.params;
     await promptService.incrementCopyCount(id);
     res.status(200).json({ success: true, message: 'Copy count updated' });
 };
 
-module.exports = { getPrompts, getPrompt, incrementCopy };
+// Increment view count (called from detail page on load)
+const incrementView = async (req, res) => {
+    const { id } = req.params;
+    await promptService.incrementViewCount(id);
+    res.status(200).json({ success: true, message: 'View count updated' });
+};
+
+module.exports = { getPrompts, getPrompt, incrementCopy, incrementView };

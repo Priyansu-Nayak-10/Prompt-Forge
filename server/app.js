@@ -1,24 +1,31 @@
 require('dotenv').config();
-const express    = require('express');
-const cors       = require('cors');
-const helmet     = require('helmet');
+const express     = require('express');
+const cors        = require('cors');
+const helmet      = require('helmet');
 const compression = require('compression');
-const path       = require('path');
+const path        = require('path');
+const pinoHttp    = require('pino-http');
 
+const logger               = require('./utils/logger');
 const { globalLimiter }    = require('./middleware/rateLimiter.middleware');
 const globalErrorHandler   = require('./middleware/error.middleware');
 
 const app = express();
 
 // ─── Trust Render's Reverse Proxy ────────────────────────────────────────────
-// Render sits behind a load balancer. Setting trust proxy = 1 lets Express
-// read the real client IP from X-Forwarded-For so rate limiting works correctly.
 app.set('trust proxy', 1);
 
+// ─── Request Logging (pino-http) ─────────────────────────────────────────────
+app.use(pinoHttp({
+    logger,
+    autoLogging: {
+        // Don't log health checks to reduce noise
+        ignore: (req) => req.url === '/api/health',
+    },
+    customLogLevel: (req, res) => res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
+}));
+
 // ─── Security Headers (helmet) ───────────────────────────────────────────────
-// Adds X-Content-Type-Options, X-Frame-Options, HSTS, CSP etc.
-// contentSecurityPolicy is configured to allow Supabase CDN + jsdelivr for the
-// frontend ESM import of @supabase/supabase-js.
 app.use(
     helmet({
         contentSecurityPolicy: {
@@ -34,7 +41,6 @@ app.use(
                 upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
             },
         },
-        // Allow cross-origin resource policy for Supabase storage images
         crossOriginResourcePolicy: { policy: 'cross-origin' },
     })
 );
@@ -43,12 +49,7 @@ app.use(
 app.use(compression());
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
-// In production: only accept requests from our own Render domain.
-// In dev: allow all origins for local testing convenience.
-const allowedOrigins = process.env.PUBLIC_URL
-    ? [process.env.PUBLIC_URL]
-    : true; // allow all in dev
-
+const allowedOrigins = process.env.PUBLIC_URL ? [process.env.PUBLIC_URL] : true;
 app.use(cors({
     origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -64,14 +65,11 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use('/api', globalLimiter);
 
 // ─── Static Frontend Serving ──────────────────────────────────────────────────
-// Serve all files from /public with production-safe cache headers.
-// HTML files get a short cache (always revalidate), assets get long cache.
 app.use(express.static(path.join(__dirname, '../public'), {
-    maxAge: '1d',           // default cache for assets (CSS/JS/images)
+    maxAge: '1d',
     etag: true,
     lastModified: true,
     setHeaders: (res, filePath) => {
-        // HTML pages must revalidate on every request so deploys take effect immediately
         if (filePath.endsWith('.html')) {
             res.setHeader('Cache-Control', 'no-cache');
         }
@@ -80,32 +78,61 @@ app.use(express.static(path.join(__dirname, '../public'), {
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-    res.json({
-        status:  'ok',
-        message: 'PromptForge API is running.',
-        env:     process.env.NODE_ENV || 'development',
-    });
+    res.json({ status: 'ok', message: 'PromptForge API is running.', env: process.env.NODE_ENV || 'development' });
 });
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
-const promptsRoutes     = require('./routes/prompts.routes');
-const adminRoutes       = require('./routes/admin.routes');
-const uploadRoutes      = require('./routes/upload.routes');
-const sitemapRoutes     = require('./routes/sitemap.routes');
-const userRoutes        = require('./routes/user.routes');
+// ─── Runtime Config for Frontend ──────────────────────────────────────────────
+// Exposes ONLY the public anon key — never the service role key.
+// Frontend fetches this once at startup to avoid hardcoding credentials in source.
+app.get('/api/config', (req, res) => {
+    const url     = process.env.SUPABASE_URL;
+    const anonKey = process.env.SUPABASE_ANON_KEY;
 
-app.use('/api/prompts',     promptsRoutes);
-app.use('/api/admin',       adminRoutes);
-app.use('/api/upload',      uploadRoutes);
-app.use('/api/user',        userRoutes);
-app.use('/sitemap.xml',     sitemapRoutes);
+    if (!url || !anonKey) {
+        return res.status(503).json({ success: false, error: 'Server configuration incomplete.' });
+    }
+
+    // 5-min browser cache — safe since keys rarely change
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.json({ url, anonKey });
+});
+
+// ─── Public Stats for Hero Section ────────────────────────────────────────────
+const { supabaseAdmin } = require('./config/supabase');
+const asyncHandler = require('./utils/asyncHandler');
+
+app.get('/api/stats', asyncHandler(async (req, res) => {
+    const [promptsRes, usersRes, catsRes] = await Promise.all([
+        supabaseAdmin.from('prompts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+        supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('categories').select('id', { count: 'exact', head: true }),
+    ]);
+    res.setHeader('Cache-Control', 'public, max-age=120'); // 2-min cache
+    res.json({
+        success: true,
+        data: {
+            prompts:    promptsRes.count || 0,
+            users:      usersRes.count   || 0,
+            categories: catsRes.count    || 0,
+        },
+    });
+}));
+
+// ─── API Routes ───────────────────────────────────────────────────────────────
+const promptsRoutes  = require('./routes/prompts.routes');
+const adminRoutes    = require('./routes/admin.routes');
+const uploadRoutes   = require('./routes/upload.routes');
+const sitemapRoutes  = require('./routes/sitemap.routes');
+const userRoutes     = require('./routes/user.routes');
+
+app.use('/api/prompts',  promptsRoutes);
+app.use('/api/admin',    adminRoutes);
+app.use('/api/upload',   uploadRoutes);
+app.use('/api/user',     userRoutes);
+app.use('/sitemap.xml',  sitemapRoutes);
 
 // ─── SPA Fallback ─────────────────────────────────────────────────────────────
-// ONLY intercepts non-API, non-asset requests and sends index.html.
-// This lets the frontend handle its own "page not found" state.
-// API routes that reach here (404s) fall through to the error handler below.
 app.get('/*path', (req, res, next) => {
-    // Let genuine API 404s pass to the error handler
     if (req.path.startsWith('/api/')) {
         const err = new Error(`API route not found: ${req.method} ${req.path}`);
         err.statusCode = 404;
@@ -114,7 +141,7 @@ app.get('/*path', (req, res, next) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// ─── Centralised Error Handler (must be last) ─────────────────────────────────
+// ─── Centralised Error Handler ────────────────────────────────────────────────
 app.use(globalErrorHandler);
 
 module.exports = app;

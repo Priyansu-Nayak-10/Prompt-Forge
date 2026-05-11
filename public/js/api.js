@@ -48,6 +48,15 @@ export const fetchTools = async () => {
 };
 
 
+export const trackView = async (id) => {
+    try {
+        await request(`${API_BASE_URL}/prompts/${id}/view`, { method: 'POST' });
+        return true;
+    } catch {
+        return false; // Analytics failure is non-fatal
+    }
+};
+
 export const trackCopy = async (id) => {
     try {
         await request(`${API_BASE_URL}/prompts/${id}/copy`, { method: 'POST' });
@@ -78,6 +87,10 @@ export const toggleSave = async (promptId) => {
         headers: authHeader(),
         body: JSON.stringify({ promptId })
     });
+};
+
+export const fetchUserProfile = async () => {
+    return request(`${API_BASE_URL}/user/me`, { headers: authHeader() });
 };
 
 export const fetchUserSubmissions = async () => {

@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PromptForge — AI Prompt Discovery Platform</title>
   <meta name="description" content="Discover, copy, and share the best AI prompts for Midjourney, ChatGPT, Stable Diffusion and more.">
+  <meta property="og:title" content="PromptForge — AI Prompt Discovery Platform">
+  <meta property="og:description" content="Discover, copy, and share the best AI prompts for Midjourney, ChatGPT, Stable Diffusion and more.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://promptforge.com/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PromptForge — AI Prompt Discovery Platform">
+  <link rel="canonical" href="https://promptforge.com/">
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <link rel="stylesheet" href="/css/global.css">
   <style>
     .hero-stats { display: flex; justify-content: center; gap: 2.5rem; margin-top: 2.5rem; flex-wrap: wrap; }
@@ -95,16 +103,16 @@
         
         <div class="hero-stats animate-fade-up stagger-4">
           <div class="hero-stat-item">
-            <div class="hero-stat-num">1,000+</div>
+            <div class="hero-stat-num" id="stat-num-prompts">…</div>
             <div class="hero-stat-label">Curated Prompts</div>
           </div>
           <div class="hero-stat-item">
-            <div class="hero-stat-num">50+</div>
+            <div class="hero-stat-num" id="stat-num-categories">…</div>
             <div class="hero-stat-label">Categories</div>
           </div>
           <div class="hero-stat-item">
-            <div class="hero-stat-num">Free</div>
-            <div class="hero-stat-label">Forever</div>
+            <div class="hero-stat-num" id="stat-num-users">…</div>
+            <div class="hero-stat-label">Members</div>
           </div>
         </div>
       </div>

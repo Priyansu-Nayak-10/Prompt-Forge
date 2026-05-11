@@ -1,68 +1,118 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const SUPABASE_URL = 'https://uylxmllxamruddnsvdwp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5bHhtbGx4YW1ydWRkbnN2ZHdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0ODMxMjQsImV4cCI6MjA5NDA1OTEyNH0.7OC-VSboYQcQxwNoO4RYoFlVch9h-zvj3ye-yNpWRY8';
+// ─── Runtime Config ────────────────────────────────────────────────────────────
+// Credentials are fetched at runtime from the Express server.
+// Nothing is hardcoded — no URL, no key committed to source.
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let _config = null;
 
+const getConfig = async () => {
+    if (_config) return _config;
+    if (window.__PF_CONFIG__) { _config = window.__PF_CONFIG__; return _config; }
+
+    const res = await fetch('/api/config');
+    if (!res.ok) throw new Error('Failed to load app configuration. Please try again.');
+    _config = await res.json();
+    window.__PF_CONFIG__ = _config; // cache on window for sync accessors
+    return _config;
+};
+
+// ─── Supabase Client (lazy singleton) ─────────────────────────────────────────
+let _client = null;
+
+export const getClient = async () => {
+    if (_client) return _client;
+    const { url, anonKey } = await getConfig();
+    _client = createClient(url, anonKey, {
+        auth: {
+            persistSession:    true,
+            autoRefreshToken:  true,
+            detectSessionInUrl: true,
+        },
+    });
+    return _client;
+};
+
+// ─── Session Validation ────────────────────────────────────────────────────────
+// Uses Supabase SDK which handles token refresh automatically.
+// Syncs the refreshed token back to localStorage so api.js authHeader() stays current.
+
+export const getSession = async () => {
+    try {
+        const sb = await getClient();
+        const { data: { session }, error } = await sb.auth.getSession();
+        if (error || !session) return null;
+        // Keep localStorage in sync with the live (possibly refreshed) token
+        localStorage.setItem('sb_access_token', session.access_token);
+        localStorage.setItem('sb_user', JSON.stringify(session.user));
+        return session;
+    } catch {
+        return null;
+    }
+};
+
+// Async, reliable gate — always use this before allowing copy/save/submit
+export const isAuthenticated = async () => {
+    const session = await getSession();
+    return !!session;
+};
+
+// Returns a fresh token for API call Authorization headers
+export const getAuthToken = async () => {
+    const session = await getSession();
+    return session?.access_token ?? null;
+};
+
+// ─── Auth Actions ──────────────────────────────────────────────────────────────
 
 export const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const sb = await getClient();
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     if (error) throw error;
     localStorage.setItem('sb_access_token', data.session.access_token);
     localStorage.setItem('sb_user', JSON.stringify(data.user));
     return data;
 };
 
-
 export const signUp = async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const sb = await getClient();
+    const { data, error } = await sb.auth.signUp({ email, password });
     if (error) throw error;
     return data;
 };
 
-
 export const signOut = async () => {
-    await supabase.auth.signOut();
+    const sb = await getClient();
+    await sb.auth.signOut();
     localStorage.removeItem('sb_access_token');
     localStorage.removeItem('sb_user');
 };
 
-
 export const getCachedUser = () => {
-    try {
-        return JSON.parse(localStorage.getItem('sb_user'));
-    } catch {
-        return null;
-    }
+    try   { return JSON.parse(localStorage.getItem('sb_user')); }
+    catch { return null; }
 };
 
+// ─── Route Guards ──────────────────────────────────────────────────────────────
 
 export const requireAuth = async (redirectTo = '/login.html') => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const session = await getSession();
     if (!session) {
-        window.location.href = redirectTo;
+        const next = encodeURIComponent(window.location.href);
+        window.location.href = `${redirectTo}?next=${next}`;
         return null;
     }
-    // Refresh local token in case it rotated
-    localStorage.setItem('sb_access_token', session.access_token);
     return session.user;
 };
 
-// Alias for legacy code or specific admin pages (could be extended later with role check)
+// Alias kept for backward compat; frontend admin check is visual-only —
+// actual admin enforcement is server-side via requireAdmin middleware.
 export const requireAdmin = requireAuth;
 
-
 export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const session = await getSession();
     if (session) {
         const urlParams = new URLSearchParams(window.location.search);
-        const nextUrl = urlParams.get('next') || defaultTo;
-        window.location.href = nextUrl;
+        window.location.href = urlParams.get('next') || defaultTo;
     }
-};
-
-
-export const isAuthenticated = () => {
-    return !!localStorage.getItem('sb_access_token');
 };

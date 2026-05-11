@@ -317,18 +317,45 @@ const loadSubmissions = async () => {
         });
 
         subTableBody.querySelectorAll('.reject-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const reason = prompt('Enter rejection reason (optional):');
-                if (reason === null) return;
-                const restore = setButtonLoading(btn, '...');
-                try {
-                    await updateSubmissionStatus(btn.dataset.id, 'rejected', reason);
-                    toast.success('Submission rejected.');
-                    loadSubmissions();
-                } catch (e) {
-                    toast.error(e.message);
-                    restore();
-                }
+            btn.addEventListener('click', () => {
+                const rejectionModal  = document.getElementById('rejection-modal');
+                const reasonInput     = document.getElementById('rejection-reason-input');
+                const confirmBtn      = document.getElementById('rejection-confirm-btn');
+                const cancelBtn       = document.getElementById('rejection-cancel-btn');
+                const closeBtn        = document.getElementById('rejection-modal-close');
+
+                reasonInput.value = '';
+                rejectionModal.style.display = 'flex';
+                setTimeout(() => reasonInput.focus(), 50);
+
+                const cleanup = () => { rejectionModal.style.display = 'none'; };
+
+                const doReject = async () => {
+                    const reason = reasonInput.value.trim();
+                    cleanup();
+                    const restore = setButtonLoading(btn, '...');
+                    try {
+                        await updateSubmissionStatus(btn.dataset.id, 'rejected', reason);
+                        toast.success('Submission rejected.');
+                        loadSubmissions();
+                    } catch (e) {
+                        toast.error(e.message);
+                        restore();
+                    }
+                };
+
+                // One-time listeners — clone to remove previous handlers
+                const newConfirm = confirmBtn.cloneNode(true);
+                const newCancel  = cancelBtn.cloneNode(true);
+                const newClose   = closeBtn.cloneNode(true);
+                confirmBtn.replaceWith(newConfirm);
+                cancelBtn.replaceWith(newCancel);
+                closeBtn.replaceWith(newClose);
+
+                newConfirm.addEventListener('click', doReject);
+                newCancel.addEventListener('click', cleanup);
+                newClose.addEventListener('click', cleanup);
+                rejectionModal.addEventListener('click', (e) => { if (e.target === rejectionModal) cleanup(); }, { once: true });
             });
         });
     } catch (e) {

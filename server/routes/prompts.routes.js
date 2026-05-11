@@ -1,32 +1,19 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const promptsController = require('../controllers/prompts.controller');
-const { validate, paginationSchema, slugParamSchema } = require('../middleware/validation.middleware');
-const asyncHandler = require('../utils/asyncHandler');
+const { validate, paginationSchema } = require('../middleware/validation.middleware');
+const asyncHandler      = require('../utils/asyncHandler');
 const { analyticsLimiter } = require('../middleware/rateLimiter.middleware');
 const { supabaseAdmin } = require('../config/supabase');
 
-// GET /api/prompts - Fetch public published prompts with pagination/filtering
-router.get(
-    '/',
-    validate(paginationSchema, 'query'),
-    asyncHandler(promptsController.getPrompts)
-);
+// GET /api/prompts
+router.get('/', validate(paginationSchema, 'query'), asyncHandler(promptsController.getPrompts));
 
-// POST /api/prompts/:id/copy - Increment copy count (MUST be before /:slug to avoid conflict)
-router.post(
-    '/:id/copy',
-    analyticsLimiter,
-    asyncHandler(promptsController.incrementCopy)
-);
+// POST /api/prompts/:id/copy  (must be before /:slug)
+router.post('/:id/copy', analyticsLimiter, asyncHandler(promptsController.incrementCopy));
 
-// GET /api/prompts/:slug - Fetch a single prompt by slug (MUST be last)
-router.get(
-    '/:slug',
-    asyncHandler(promptsController.getPrompt)
-);
-
-// --- Discovery Routes (Merged from separate files) ---
+// POST /api/prompts/:id/view  — view tracking (rate-limited to prevent spam)
+router.post('/:id/view', analyticsLimiter, asyncHandler(promptsController.incrementView));
 
 // GET /api/prompts/discovery/categories
 router.get('/discovery/categories', asyncHandler(async (req, res) => {
@@ -41,5 +28,8 @@ router.get('/discovery/tools', asyncHandler(async (req, res) => {
     if (error) throw error;
     res.json({ success: true, data });
 }));
+
+// GET /api/prompts/:slug  (must be last)
+router.get('/:slug', asyncHandler(promptsController.getPrompt));
 
 module.exports = router;

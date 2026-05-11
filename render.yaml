@@ -52,3 +52,7 @@ services:
 
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+
+      # Pino log level: error | warn | info | debug
+      - key: LOG_LEVEL
+        value: info
