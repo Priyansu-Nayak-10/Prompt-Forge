@@ -1,6 +1,8 @@
 const { supabaseAdmin } = require('../config/supabase');
 const OpenAI = require('openai');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeKey ? require('stripe')(stripeKey) : null;
+
 
 // ─── Reviews ─────────────────────────────────────────────────────────────────
 const getPromptReviews = async (req, res) => {
