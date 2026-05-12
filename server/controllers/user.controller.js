@@ -113,11 +113,26 @@ const uploadAvatar = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-    const { data: profile } = await supabaseAdmin
+    let { data: profile, error } = await supabaseAdmin
         .from('profiles')
         .select('role, display_name, avatar_url, theme')
         .eq('id', req.user.id)
         .single();
+
+    // If profile doesn't exist, create it on the fly
+    if (error && error.code === 'PGRST116') {
+        const { data: newProfile, error: createError } = await supabaseAdmin
+            .from('profiles')
+            .insert([{ 
+                id: req.user.id, 
+                role: 'user',
+                display_name: req.user.email.split('@')[0]
+            }])
+            .select()
+            .single();
+        
+        if (!createError) profile = newProfile;
+    }
 
     res.json({
         success: true,
