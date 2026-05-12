@@ -2,19 +2,7 @@ import { requireAuth, signOut } from '/js/auth.js';
 import { fetchUserSubmissions } from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 
-// ─── Auth Guard ───────────────────────────────────────────────────────────────
-const user = await requireAuth('/login.html');
-if (!user) throw new Error('Auth redirect');
-
-// Show email in sidebar
-const emailEl = document.getElementById('user-email');
-if (emailEl) emailEl.textContent = user.email;
-
-// Logout
-document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    await signOut();
-    window.location.href = '/';
-});
+// ─── Auth Guard (Moved to Init) ───────────────────────────────────────────────────────────────
 
 // ─── Tab Navigation ───────────────────────────────────────────────────────────
 const sidebarLinks = document.querySelectorAll('.sidebar-link[data-tab]');
@@ -30,7 +18,7 @@ sidebarLinks.forEach(btn => {
 
         if (tab === 'collections' && !collectionsLoaded) loadCollections();
         if (tab === 'submissions' && !submissionsLoaded) loadSubmissions();
-        if (tab === 'account') loadAccount();
+        if (tab === 'account') loadAccount(window.currentUser);
     });
 });
 
@@ -190,12 +178,41 @@ const loadSubmissions = async () => {
 };
 
 // ─── Account Settings ─────────────────────────────────────────────────────────
-const loadAccount = () => {
+const loadAccount = (user) => {
     const emailInput = document.getElementById('account-email');
     const idInput    = document.getElementById('account-id');
-    if (emailInput) emailInput.value = user.email || '';
-    if (idInput)    idInput.value    = user.id     || '';
+    if (user) {
+        if (emailInput) emailInput.value = user.email || '';
+        if (idInput)    idInput.value    = user.id     || '';
+    }
 };
 
-// ─── Init — load default tab ──────────────────────────────────────────────────
-loadCollections();
+// ─── Init ──────────────────────────────────────────────────
+const initUserDashboard = async () => {
+    try {
+        const user = await requireAuth('/login.html');
+        if (!user) {
+            console.error('Auth redirect');
+            return;
+        }
+
+        // Show email in sidebar
+        const emailEl = document.getElementById('user-email');
+        if (emailEl) emailEl.textContent = user.email;
+
+        // Logout
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+            await signOut();
+            window.location.href = '/';
+        });
+
+        // Save user to window so tabs can access it
+        window.currentUser = user;
+
+        loadCollections();
+    } catch (err) {
+        console.error('Failed to init user dashboard', err);
+    }
+};
+
+initUserDashboard();

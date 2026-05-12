@@ -15,31 +15,6 @@ import {
     fetchTools
 } from '/js/api.js';
 
-// ---- Auth guard ----
-const user = await requireAdmin('/login.html').catch(err => {
-    console.error('Auth error:', err);
-    window.location.href = '/user-dashboard.html';
-    return null;
-});
-
-if (!user) {
-    // Throwing an error stops module execution while the browser redirects
-    throw new Error('Unauthorized or missing role. Redirecting...');
-}
-
-const userEmailEl = document.getElementById('user-email');
-if (userEmailEl) userEmailEl.textContent = user.email;
-
-document.getElementById('logout-btn').addEventListener('click', async () => {
-    await signOut();
-    window.location.href = '/login.html';
-});
-
-let state = { q: '', page: 1, limit: 12 };
-let editingId = null;
-let categories = [];
-let currentSection = 'prompts';
-
 // ---- DOM refs ----
 const tableBody     = document.getElementById('prompts-table-body');
 const pagEl         = document.getElementById('admin-pagination');
@@ -67,6 +42,13 @@ const fImageFile = document.getElementById('form-image-file');
 const uploadBtn  = document.getElementById('upload-image-btn');
 const preview    = document.getElementById('upload-preview');
 const previewImg = document.getElementById('preview-img');
+
+let state = { q: '', page: 1, limit: 12 };
+let editingId = null;
+let categories = [];
+let currentSection = 'prompts';
+
+// ---- Auth guard (Moved to init) ----
 
 // ---- Load categories ----
 const loadCategories = async () => {
@@ -476,6 +458,33 @@ document.querySelectorAll('.sidebar-link[data-section]').forEach(link => {
 });
 
 // ---- Init ----
-document.title = 'Admin Dashboard — PromptForge';
-await loadCategories();
-loadPrompts();
+const initDashboard = async () => {
+    try {
+        const user = await requireAdmin('/login.html').catch(err => {
+            console.error('Auth error:', err);
+            window.location.href = '/user-dashboard.html';
+            return null;
+        });
+
+        if (!user) {
+            console.error('Unauthorized or missing role. Redirecting...');
+            return;
+        }
+
+        const userEmailEl = document.getElementById('user-email');
+        if (userEmailEl) userEmailEl.textContent = user.email;
+
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            await signOut();
+            window.location.href = '/login.html';
+        });
+
+        document.title = 'Admin Dashboard — PromptForge';
+        await loadCategories();
+        loadPrompts();
+    } catch (err) {
+        console.error('Dashboard init failed:', err);
+    }
+};
+
+initDashboard();
