@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { supabaseAdmin } = require('../config/supabase');
-const { requireAuth } = require('../middleware/auth.middleware');
+const { requireUser } = require('../middleware/auth.middleware');
 const asyncHandler = require('../utils/asyncHandler');
 
 // @route   GET /api/collections
 // @desc    Get all collections for the authenticated user
 // @access  Private
-router.get('/', requireAuth, asyncHandler(async (req, res) => {
+router.get('/', requireUser, asyncHandler(async (req, res) => {
     const { data, error } = await supabaseAdmin
         .from('collections')
         .select(`
@@ -31,7 +31,7 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
 // @route   POST /api/collections
 // @desc    Create a new collection
 // @access  Private
-router.post('/', requireAuth, asyncHandler(async (req, res) => {
+router.post('/', requireUser, asyncHandler(async (req, res) => {
     const { name, description } = req.body;
     if (!name) return res.status(400).json({ error: 'Collection name is required' });
 
@@ -48,7 +48,7 @@ router.post('/', requireAuth, asyncHandler(async (req, res) => {
 // @route   DELETE /api/collections/:id
 // @desc    Delete a collection
 // @access  Private
-router.delete('/:id', requireAuth, asyncHandler(async (req, res) => {
+router.delete('/:id', requireUser, asyncHandler(async (req, res) => {
     const { id } = req.params;
     
     // RLS will ensure user can only delete their own
@@ -65,7 +65,7 @@ router.delete('/:id', requireAuth, asyncHandler(async (req, res) => {
 // @route   POST /api/collections/:id/prompts
 // @desc    Toggle a prompt in/out of a collection
 // @access  Private
-router.post('/:id/prompts', requireAuth, asyncHandler(async (req, res) => {
+router.post('/:id/prompts', requireUser, asyncHandler(async (req, res) => {
     const { id: collectionId } = req.params;
     const { prompt_id } = req.body;
 
@@ -103,7 +103,7 @@ router.post('/:id/prompts', requireAuth, asyncHandler(async (req, res) => {
 // @route   GET /api/collections/:id/prompts
 // @desc    Get all prompts inside a specific collection
 // @access  Private
-router.get('/:id/prompts', requireAuth, asyncHandler(async (req, res) => {
+router.get('/:id/prompts', requireUser, asyncHandler(async (req, res) => {
     const { id: collectionId } = req.params;
 
     const { data, error } = await supabaseAdmin
