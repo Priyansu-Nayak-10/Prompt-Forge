@@ -16,17 +16,19 @@ import {
 } from '/js/api.js';
 
 // ---- Auth guard ----
-let user;
-try {
-    user = await requireAdmin('/login.html');
-    if (!user) return; // requireAdmin handles redirect
-} catch (err) {
+const user = await requireAdmin('/login.html').catch(err => {
     console.error('Auth error:', err);
     window.location.href = '/user-dashboard.html';
-    return;
+    return null;
+});
+
+if (!user) {
+    // Throwing an error stops module execution while the browser redirects
+    throw new Error('Unauthorized or missing role. Redirecting...');
 }
 
-document.getElementById('user-email').textContent = user.email;
+const userEmailEl = document.getElementById('user-email');
+if (userEmailEl) userEmailEl.textContent = user.email;
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
     await signOut();
