@@ -45,7 +45,12 @@
         </div>
 
         <div class="field">
-          <label class="label" for="sub-prompt">Prompt Text *</label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <label class="label" for="sub-prompt" style="margin-bottom:0;">Prompt Text *</label>
+            <button type="button" id="ai-optimize-btn" class="btn btn-secondary btn-sm" style="font-size:0.7rem;padding:0.25rem 0.5rem;gap:0.3rem;">
+              ✨ Optimize with AI
+            </button>
+          </div>
           <textarea id="sub-prompt" class="input" rows="6" placeholder="Paste your full prompt here..." required maxlength="5000"></textarea>
           <div class="char-counter" id="prompt-counter">0 / 5000</div>
         </div>

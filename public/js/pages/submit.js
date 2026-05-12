@@ -33,6 +33,45 @@ const init = async () => {
     counter('sub-title', 'title-counter', 100);
     counter('sub-prompt', 'prompt-counter', 5000);
 
+    // AI Optimize
+    const optimizeBtn = document.getElementById('ai-optimize-btn');
+    optimizeBtn?.addEventListener('click', async () => {
+        const promptInput = document.getElementById('sub-prompt');
+        const text = promptInput.value.trim();
+        if (!text) return toast.error('Enter a prompt first to optimize it!');
+        
+        const originalText = optimizeBtn.innerHTML;
+        optimizeBtn.disabled = true;
+        optimizeBtn.textContent = '...';
+        
+        try {
+            const token = localStorage.getItem('sb_access_token');
+            const res = await fetch('/api/ai/optimize', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ prompt: text })
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Optimization failed');
+            
+            promptInput.value = json.optimized;
+            // Update char counter manually
+            const n = promptInput.value.length;
+            const c = document.getElementById('prompt-counter');
+            if (c) c.textContent = `${n} / 5000`;
+            
+            toast.success('Prompt optimized by AI! ✨');
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            optimizeBtn.disabled = false;
+            optimizeBtn.innerHTML = originalText;
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errEl.style.display = 'none';

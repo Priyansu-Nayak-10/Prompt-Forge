@@ -114,6 +114,9 @@ if (container) {
               <svg width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
               ${isSaved ? 'Saved' : 'Save Prompt'}
             </button>
+            <button id="tip-btn" class="btn btn-secondary" style="width:100%;gap:0.5rem;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;">
+              ☕ Tip Creator ($5)
+            </button>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
               <div style="text-align:center;padding:0.75rem;background:var(--bg-2);border-radius:var(--radius-sm);">
                 <div style="font-size:1.25rem;font-weight:800;">${(prompt.view_count || 0).toLocaleString()}</div>
@@ -256,6 +259,48 @@ createColBtn?.addEventListener('click', async () => {
     } finally {
         createColBtn.disabled = false;
         createColBtn.textContent = 'Create';
+    }
+});
+
+// ─── Tip Creator Handler ──────────────────────────────────────────────────────
+document.getElementById('tip-btn')?.addEventListener('click', async () => {
+    if (!await isAuthenticated()) {
+        toast.error('Sign in to tip the creator.');
+        setTimeout(() => { window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`; }, 1200);
+        return;
+    }
+    
+    try {
+        const btn = document.getElementById('tip-btn');
+        btn.disabled = true;
+        btn.textContent = 'Redirecting...';
+        
+        const token = localStorage.getItem('sb_access_token');
+        const res = await fetch(`${API_BASE_URL}/checkout/create-session`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ 
+                promptId: prompt.id, 
+                promptTitle: prompt.title,
+                slug: prompt.slug 
+            })
+        });
+        const json = await res.json();
+        if (json.success && json.url) {
+            window.location.href = json.url;
+        } else {
+            throw new Error(json.error || 'Failed to create checkout session');
+        }
+    } catch (err) {
+        toast.error(err.message);
+        const btn = document.getElementById('tip-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '☕ Tip Creator ($5)';
+        }
     }
 });
 

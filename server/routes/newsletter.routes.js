@@ -29,6 +29,26 @@ router.post(
             throw error;
         }
 
+        // Send Welcome Email via Resend (optional/non-blocking)
+        if (process.env.RESEND_API_KEY) {
+            const { Resend } = require('resend');
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            
+            resend.emails.send({
+                from: 'PromptForge <onboarding@resend.dev>',
+                to: email,
+                subject: 'Welcome to PromptForge! ✨',
+                html: `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                        <h1 style="color: #6C3FE8;">Welcome to PromptForge!</h1>
+                        <p>Thank you for joining our community of prompt engineers. You'll now receive our weekly digest of top-trending AI prompts.</p>
+                        <p>In the meantime, start exploring our curated collections:</p>
+                        <a href="${process.env.PUBLIC_URL || 'https://promptforge.com'}/prompts.html" style="display: inline-block; padding: 10px 20px; background-color: #6C3FE8; color: white; text-decoration: none; border-radius: 5px;">Explore Prompts</a>
+                    </div>
+                `
+            }).catch(err => console.error('Email failed:', err));
+        }
+
         res.status(201).json({ success: true, message: 'Successfully subscribed to the newsletter!' });
     })
 );
