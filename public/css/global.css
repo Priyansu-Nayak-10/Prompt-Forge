@@ -303,9 +303,17 @@ body {
 .prompt-card:hover .card-image img { transform: scale(1.06); }
 .card-image-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--text-muted); }
 .card-body { padding: var(--sp-5); display: flex; flex-direction: column; flex: 1; gap: var(--sp-3); }
-.card-title { font-size: 0.9375rem; font-weight: 700; color: var(--text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: color var(--transition); }
+.card-title { 
+  font-size: 0.9375rem; font-weight: 700; color: var(--text); line-height: 1.4; 
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; 
+  overflow: hidden; transition: color var(--transition); 
+}
 .prompt-card:hover .card-title { color: var(--primary-2); }
-.card-desc { font-size: 0.8125rem; color: var(--text-muted); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-desc { 
+  font-size: 0.8125rem; color: var(--text-muted); line-height: 1.6; 
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; 
+  overflow: hidden; 
+}
 .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: var(--sp-3); border-top: 1px solid var(--border); }
 
 
