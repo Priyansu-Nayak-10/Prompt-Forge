@@ -6,7 +6,7 @@ const { body, validationResult } = require('express-validator');
 const path = require('path');
 const fs = require('fs');
 
-// ─── Newsletter ──────────────────────────────────────────────────────────────
+// Newsletter
 router.post(
     '/newsletter/subscribe',
     [body('email').isEmail().normalizeEmail()],
@@ -35,7 +35,7 @@ router.post(
     })
 );
 
-// ─── OpenGraph Images ────────────────────────────────────────────────────────
+// OpenGraph Images
 router.get('/og/:slug', asyncHandler(async (req, res) => {
     const { slug } = req.params;
     const { data: prompt } = await supabaseAdmin.from('prompts').select('title, description').eq('slug', slug).single();
@@ -61,7 +61,7 @@ router.get('/og/:slug', asyncHandler(async (req, res) => {
     canvas.createPNGStream().pipe(res);
 }));
 
-// ─── Sitemap ─────────────────────────────────────────────────────────────────
+// Sitemap
 router.get('/sitemap.xml', asyncHandler(async (req, res) => {
     const { data: prompts } = await supabaseAdmin.from('prompts').select('slug, updated_at').eq('status', 'published');
     const baseUrl = process.env.PUBLIC_URL || `http://${req.headers.host}`;

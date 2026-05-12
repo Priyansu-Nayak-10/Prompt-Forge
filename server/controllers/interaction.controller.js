@@ -4,7 +4,7 @@ const stripeKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeKey ? require('stripe')(stripeKey) : null;
 
 
-// ─── Reviews ─────────────────────────────────────────────────────────────────
+// Reviews
 const getPromptReviews = async (req, res) => {
     const { promptId } = req.params;
     const { data, error } = await supabaseAdmin
@@ -49,7 +49,7 @@ const deleteReview = async (req, res) => {
     res.json({ success: true, message: 'Review deleted' });
 };
 
-// ─── AI Optimization ─────────────────────────────────────────────────────────
+// AI Optimization
 const optimizePrompt = async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ success: false, error: 'Prompt text is required.' });
@@ -72,7 +72,7 @@ const optimizePrompt = async (req, res) => {
     }
 };
 
-// ─── Stripe Checkout ─────────────────────────────────────────────────────────
+// Stripe Checkout
 const createCheckoutSession = async (req, res) => {
     if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ success: false, error: 'Payments not configured.' });
 

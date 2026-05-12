@@ -12,10 +12,10 @@ const globalErrorHandler   = require('./middleware/error.middleware');
 
 const app = express();
 
-// ─── Trust Render's Reverse Proxy ────────────────────────────────────────────
+// Trust Reverse Proxy
 app.set('trust proxy', 1);
 
-// ─── Request Logging (pino-http) ─────────────────────────────────────────────
+// Request Logging
 app.use(pinoHttp({
     logger,
     autoLogging: {
@@ -25,7 +25,7 @@ app.use(pinoHttp({
     customLogLevel: (req, res) => res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info',
 }));
 
-// ─── Security Headers (helmet) ───────────────────────────────────────────────
+// Security Headers
 app.use(
     helmet({
         contentSecurityPolicy: {
@@ -45,10 +45,10 @@ app.use(
     })
 );
 
-// ─── Gzip Compression ────────────────────────────────────────────────────────
+// Gzip Compression
 app.use(compression());
 
-// ─── CORS ────────────────────────────────────────────────────────────────────
+// CORS
 let allowedOrigin = true;
 if (process.env.PUBLIC_URL) {
     try {
@@ -68,14 +68,14 @@ app.use(cors({
     credentials: true,
 }));
 
-// ─── Body Parsing ────────────────────────────────────────────────────────────
+// Body Parsing
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-// ─── Global Rate Limiting (API only) ─────────────────────────────────────────
+// Global Rate Limiting
 app.use('/api', globalLimiter);
 
-// ─── Static Frontend Serving ──────────────────────────────────────────────────
+// Static Frontend Serving
 app.use(express.static(path.join(__dirname, '../public'), {
     maxAge: '1d',
     etag: true,
@@ -87,12 +87,12 @@ app.use(express.static(path.join(__dirname, '../public'), {
     },
 }));
 
-// ─── Health Check ─────────────────────────────────────────────────────────────
+// Health Check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'PromptForge API is running.', env: process.env.NODE_ENV || 'development' });
 });
 
-// ─── Runtime Config for Frontend ──────────────────────────────────────────────
+// Runtime Config for Frontend
 // Exposes ONLY the public anon key — never the service role key.
 // Frontend fetches this once at startup to avoid hardcoding credentials in source.
 app.get('/api/config', (req, res) => {
@@ -108,7 +108,7 @@ app.get('/api/config', (req, res) => {
     res.json({ url, anonKey });
 });
 
-// ─── Public Stats for Hero Section ────────────────────────────────────────────
+// Public Stats
 const { supabaseAdmin } = require('./config/supabase');
 const asyncHandler = require('./utils/asyncHandler');
 
@@ -129,8 +129,7 @@ app.get('/api/stats', asyncHandler(async (req, res) => {
     });
 }));
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// API Routes
 const promptsRoutes     = require('./routes/prompts.routes');
 const adminRoutes       = require('./routes/admin.routes');
 const uploadRoutes      = require('./routes/upload.routes');
@@ -147,7 +146,7 @@ app.use('/api/collections', collectionsRoutes);
 app.use('/api',             interactionRoutes);
 app.use('/',                marketingRoutes);
 
-// ─── Dynamic SEO Injection for Prompt Pages ───────────────────────────────────
+// Dynamic SEO Injection
 const fs = require('fs');
 app.get('/prompt-detail.html', (req, res, next) => {
     const slug = req.query.slug;
@@ -174,7 +173,7 @@ app.get('/prompt-detail.html', (req, res, next) => {
     });
 });
 
-// ─── 404 Not Found Handler (Multi-page app fallback) ──────────────────────────
+// 404 Handler
 app.use((req, res, next) => {
     if (req.path.startsWith('/api/')) {
         const err = new Error(`API route not found: ${req.method} ${req.path}`);
@@ -185,7 +184,7 @@ app.use((req, res, next) => {
     res.redirect('/');
 });
 
-// ─── Centralised Error Handler ────────────────────────────────────────────────
+// Centralised Error Handler
 app.use(globalErrorHandler);
 
 module.exports = app;
