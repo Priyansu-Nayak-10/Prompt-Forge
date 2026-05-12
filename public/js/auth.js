@@ -127,10 +127,26 @@ export const requireAdmin = async (redirectTo = '/login.html') => {
     }
 };
 
-export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
+export const redirectIfLoggedIn = async (defaultTo = null) => {
     const session = await getSession();
     if (session) {
         const urlParams = new URLSearchParams(window.location.search);
-        window.location.href = urlParams.get('next') || defaultTo;
+        let targetUrl = urlParams.get('next');
+        
+        if (!targetUrl) {
+            // Determine default dashboard based on role
+            try {
+                const { fetchUserProfile } = await import('/js/api.js');
+                const res = await fetchUserProfile();
+                const role = res?.data?.role || 'user';
+                targetUrl = role === 'admin' ? '/dashboard.html' : '/user-dashboard.html';
+            } catch (err) {
+                targetUrl = '/user-dashboard.html';
+            }
+        }
+        
+        // If the caller provided a hardcoded defaultTo that isn't dashboard.html (e.g. for preserving state), use it.
+        // Otherwise, use our smart targetUrl.
+        window.location.href = defaultTo && defaultTo !== '/dashboard.html' ? defaultTo : targetUrl;
     }
 };
