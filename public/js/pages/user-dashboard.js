@@ -280,6 +280,14 @@ const initUserDashboard = async () => {
             window.location.href = '/';
         });
 
+        // Show admin link if role is admin
+        fetchUserProfile().then(res => {
+            if (res?.data?.role === 'admin') {
+                const adminLink = document.getElementById('admin-sidebar-link');
+                if (adminLink) adminLink.style.display = 'flex';
+            }
+        }).catch(() => {});
+
         // Save user to window so tabs can access it
         window.currentUser = user;
 
