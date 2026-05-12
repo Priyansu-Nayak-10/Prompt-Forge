@@ -53,6 +53,15 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
 
+      - key: OPENAI_API_KEY
+        sync: false
+
+      - key: STRIPE_SECRET_KEY
+        sync: false
+
+      - key: RESEND_API_KEY
+        sync: false
+
       # Pino log level: error | warn | info | debug
       - key: LOG_LEVEL
         value: info

@@ -130,29 +130,22 @@ app.get('/api/stats', asyncHandler(async (req, res) => {
 }));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
-const promptsRoutes  = require('./routes/prompts.routes');
-const adminRoutes    = require('./routes/admin.routes');
-const uploadRoutes   = require('./routes/upload.routes');
-const sitemapRoutes  = require('./routes/sitemap.routes');
-const userRoutes     = require('./routes/user.routes');
-const newsletterRoutes = require('./routes/newsletter.routes');
-const ogRoutes       = require('./routes/og.routes');
+// ─── API Routes ───────────────────────────────────────────────────────────────
+const promptsRoutes     = require('./routes/prompts.routes');
+const adminRoutes       = require('./routes/admin.routes');
+const uploadRoutes      = require('./routes/upload.routes');
+const userRoutes        = require('./routes/user.routes');
 const collectionsRoutes = require('./routes/collections.routes');
-const reviewsRoutes = require('./routes/reviews.routes');
-const aiRoutes      = require('./routes/ai.routes');
-const stripeRoutes  = require('./routes/stripe.routes');
+const interactionRoutes = require('./routes/interaction.routes');
+const marketingRoutes   = require('./routes/marketing.routes');
 
-app.use('/api/prompts',  promptsRoutes);
-app.use('/api/admin',    adminRoutes);
-app.use('/api/upload',   uploadRoutes);
-app.use('/api/user',     userRoutes);
-app.use('/api/newsletter', newsletterRoutes);
-app.use('/api/og',       ogRoutes);
+app.use('/api/prompts',     promptsRoutes);
+app.use('/api/admin',       adminRoutes);
+app.use('/api/upload',      uploadRoutes);
+app.use('/api/user',        userRoutes);
 app.use('/api/collections', collectionsRoutes);
-app.use('/api/reviews',  reviewsRoutes);
-app.use('/api/ai',       aiRoutes);
-app.use('/api/checkout', stripeRoutes);
-app.use('/sitemap.xml',  sitemapRoutes);
+app.use('/api',             interactionRoutes);
+app.use('/',                marketingRoutes);
 
 // ─── Dynamic SEO Injection for Prompt Pages ───────────────────────────────────
 const fs = require('fs');
