@@ -77,11 +77,11 @@ const submitPrompt = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     const userId = req.user.id;
-    const { display_name, avatar_url } = req.body;
+    const { display_name, avatar_url, theme } = req.body;
 
     const { data, error } = await supabaseAdmin
         .from('profiles')
-        .update({ display_name, avatar_url })
+        .update({ display_name, avatar_url, theme })
         .eq('id', userId)
         .select()
         .single();
@@ -115,7 +115,7 @@ const uploadAvatar = async (req, res) => {
 const getMe = async (req, res) => {
     const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('role, display_name, avatar_url')
+        .select('role, display_name, avatar_url, theme')
         .eq('id', req.user.id)
         .single();
 
@@ -126,7 +126,8 @@ const getMe = async (req, res) => {
             email: req.user.email,
             role:  profile?.role || 'user',
             display_name: profile?.display_name || '',
-            avatar_url: profile?.avatar_url || ''
+            avatar_url: profile?.avatar_url || '',
+            theme: profile?.theme || 'dark'
         },
     });
 };
