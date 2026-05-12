@@ -49,9 +49,20 @@ app.use(
 app.use(compression());
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
-const allowedOrigins = process.env.PUBLIC_URL ? [process.env.PUBLIC_URL] : true;
+let allowedOrigin = true;
+if (process.env.PUBLIC_URL) {
+    try {
+        const url = new URL(process.env.PUBLIC_URL);
+        const baseDomain = url.hostname.replace(/^www\./, '');
+        // Allow http/https and optional www. prefix
+        allowedOrigin = new RegExp(`^https?:\\/\\/(www\\.)?\\/?${baseDomain.replace(/\\./g, '\\\\.')}$`);
+    } catch (e) {
+        allowedOrigin = [process.env.PUBLIC_URL];
+    }
+}
+
 app.use(cors({
-    origin: allowedOrigins,
+    origin: allowedOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,

@@ -59,7 +59,7 @@ const loadPrompts = async () => {
         }
 
         let savedIds = [];
-        if (isAuthenticated()) {
+        if (await isAuthenticated()) {
             try {
                 const saveRes = await fetchSavedPromptIds();
                 if (saveRes.success) savedIds = saveRes.data || [];

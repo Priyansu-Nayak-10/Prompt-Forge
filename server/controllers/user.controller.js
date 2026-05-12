@@ -21,14 +21,29 @@ const getSavedPromptIds = async (req, res) => {
 
 const getSubmissions = async (req, res) => {
     const userId = req.user.id;
-    const { data, error } = await supabaseAdmin
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+
+    const { data, count, error } = await supabaseAdmin
         .from('submissions')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(start, end);
 
     if (error) throw error;
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ 
+        success: true, 
+        data,
+        metadata: {
+            total: count,
+            page,
+            limit,
+            totalPages: Math.ceil((count || 0) / limit)
+        }
+    });
 };
 
 const submitPrompt = async (req, res) => {
