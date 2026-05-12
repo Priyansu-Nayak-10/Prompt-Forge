@@ -124,12 +124,45 @@ const adminRoutes    = require('./routes/admin.routes');
 const uploadRoutes   = require('./routes/upload.routes');
 const sitemapRoutes  = require('./routes/sitemap.routes');
 const userRoutes     = require('./routes/user.routes');
+const newsletterRoutes = require('./routes/newsletter.routes');
+const ogRoutes       = require('./routes/og.routes');
+const collectionsRoutes = require('./routes/collections.routes');
 
 app.use('/api/prompts',  promptsRoutes);
 app.use('/api/admin',    adminRoutes);
 app.use('/api/upload',   uploadRoutes);
 app.use('/api/user',     userRoutes);
+app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/og',       ogRoutes);
+app.use('/api/collections', collectionsRoutes);
 app.use('/sitemap.xml',  sitemapRoutes);
+
+// ─── Dynamic SEO Injection for Prompt Pages ───────────────────────────────────
+const fs = require('fs');
+app.get('/prompt-detail.html', (req, res, next) => {
+    const slug = req.query.slug;
+    const filePath = path.join(__dirname, '../public/prompt-detail.html');
+    
+    if (!slug) return res.sendFile(filePath);
+
+    fs.readFile(filePath, 'utf8', (err, html) => {
+        if (err) return next(err);
+        
+        // Inject OpenGraph meta tags
+        const publicUrl = process.env.PUBLIC_URL || `http://${req.headers.host}`;
+        const ogImageUrl = `${publicUrl}/api/og/${slug}`;
+        const promptUrl = `${publicUrl}/prompt-detail.html?slug=${slug}`;
+
+        const injectedHtml = html.replace('</head>', `
+    <meta property="og:image" content="${ogImageUrl}">
+    <meta property="og:url" content="${promptUrl}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="${ogImageUrl}">
+</head>`);
+
+        res.send(injectedHtml);
+    });
+});
 
 // ─── SPA Fallback ─────────────────────────────────────────────────────────────
 app.get('/*path', (req, res, next) => {

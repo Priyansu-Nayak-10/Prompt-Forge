@@ -61,3 +61,47 @@ try {
 } catch (err) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#f87171">${err.message}</div>`;
 }
+
+// ─── Newsletter Form ───────────────────────────────────────────────────────────
+const newsletterForm = document.getElementById('newsletter-form');
+const newsletterMsg  = document.getElementById('newsletter-msg');
+const newsletterBtn  = document.getElementById('newsletter-btn');
+
+if (newsletterForm) {
+    newsletterForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('newsletter-email').value;
+        if (!email) return;
+
+        newsletterBtn.disabled = true;
+        newsletterBtn.textContent = 'Subscribing...';
+        newsletterMsg.style.display = 'none';
+        newsletterMsg.style.color = 'var(--text-muted)';
+
+        try {
+            const res = await fetch('/api/newsletter/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+
+            newsletterMsg.style.display = 'block';
+            if (data.success) {
+                newsletterMsg.style.color = '#4ade80';
+                newsletterMsg.textContent = '🎉 ' + data.message;
+                newsletterForm.reset();
+            } else {
+                newsletterMsg.style.color = '#f87171';
+                newsletterMsg.textContent = data.error || (data.errors ? data.errors[0].msg : 'Failed to subscribe.');
+            }
+        } catch (err) {
+            newsletterMsg.style.display = 'block';
+            newsletterMsg.style.color = '#f87171';
+            newsletterMsg.textContent = 'An error occurred. Please try again later.';
+        } finally {
+            newsletterBtn.disabled = false;
+            newsletterBtn.textContent = 'Subscribe';
+        }
+    });
+}

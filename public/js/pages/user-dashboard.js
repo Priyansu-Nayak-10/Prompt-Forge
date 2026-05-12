@@ -28,58 +28,110 @@ sidebarLinks.forEach(btn => {
         btn.classList.add('active');
         document.getElementById(`tab-${tab}`)?.classList.add('active');
 
-        if (tab === 'bookmarks' && !bookmarksLoaded) loadBookmarks();
+        if (tab === 'collections' && !collectionsLoaded) loadCollections();
         if (tab === 'submissions' && !submissionsLoaded) loadSubmissions();
         if (tab === 'account') loadAccount();
     });
 });
 
-// ─── Bookmarks ────────────────────────────────────────────────────────────────
-let bookmarksLoaded = false;
 
-const loadBookmarks = async () => {
-    const container = document.getElementById('bookmarks-container');
+// ─── Collections ────────────────────────────────────────────────────────────────
+import { fetchCollections, fetchCollectionPrompts, toggleCollectionPrompt } from '/js/api.js';
+
+let collectionsLoaded = false;
+
+const loadCollections = async () => {
+    const container = document.getElementById('collections-container');
     if (!container) return;
-    bookmarksLoaded = true;
+    collectionsLoaded = true;
 
-    container.innerHTML = `<div class="prompt-grid">${Array(3).fill('<div class="skeleton skeleton-card"></div>').join('')}</div>`;
+    container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1.5rem;" id="collections-grid">
+      <div class="skeleton skeleton-card" style="height:140px;"></div>
+      <div class="skeleton skeleton-card" style="height:140px;"></div>
+    </div>`;
 
     try {
-        const res = await fetchSavedPrompts();
-        const prompts = res.data || [];
+        const res = await fetchCollections();
+        const collections = res.data || [];
 
-        if (!prompts.length) {
+        if (!collections.length) {
             container.innerHTML = `
               <div class="empty-state">
-                <div style="font-size:2.5rem;margin-bottom:1rem;">🔖</div>
-                <h3>No saved prompts yet</h3>
-                <p>Browse prompts and click the bookmark icon to save them here.</p>
+                <div style="font-size:2.5rem;margin-bottom:1rem;">📁</div>
+                <h3>No collections yet</h3>
+                <p>Browse prompts and click "Save" to create your first collection.</p>
                 <a href="/prompts.html" class="btn btn-primary">Explore Prompts</a>
               </div>`;
             return;
         }
 
-        container.innerHTML = `<div class="prompt-grid">
-          ${prompts.map(p => promptCardHTML({ ...p, isSaved: true })).join('')}
+        // Render collection folders
+        container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1.5rem;">
+          ${collections.map(col => `
+            <div class="prompt-card" style="padding:1.5rem;display:flex;flex-direction:column;cursor:pointer;" data-col-id="${col.id}">
+              <div style="font-size:2rem;margin-bottom:0.75rem;">📁</div>
+              <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:0.25rem;">${clean(col.name)}</h3>
+              <p style="color:var(--text-muted);font-size:0.875rem;">${col.prompt_count} prompts</p>
+            </div>
+          `).join('')}
         </div>`;
-        attachCopyHandlers(container);
 
-        // Handle unsave from dashboard
-        container.addEventListener('click', async (e) => {
-            const btn = e.target.closest('[data-save-id]');
+        // Add click handler to view prompts inside a collection
+        container.querySelectorAll('[data-col-id]').forEach(card => {
+            card.addEventListener('click', () => loadCollectionDetail(card.dataset.colId, card.querySelector('h3').textContent));
+        });
+
+    } catch (err) {
+        container.innerHTML = `<p style="color:#f87171;padding:2rem;">Failed to load collections: ${err.message}</p>`;
+    }
+};
+
+const loadCollectionDetail = async (collectionId, collectionName) => {
+    const container = document.getElementById('collections-container');
+    
+    // Breadcrumb and Title
+    container.innerHTML = `
+      <div style="margin-bottom:1.5rem;">
+         <button class="btn btn-secondary btn-sm" id="back-to-collections" style="margin-bottom:1rem;">← Back to Collections</button>
+         <h2 style="font-size:1.5rem;font-weight:700;">${clean(collectionName)}</h2>
+      </div>
+      <div class="prompt-grid">
+        ${Array(3).fill('<div class="skeleton skeleton-card"></div>').join('')}
+      </div>
+    `;
+
+    document.getElementById('back-to-collections').addEventListener('click', loadCollections);
+
+    try {
+        const res = await fetchCollectionPrompts(collectionId);
+        const prompts = res.data || [];
+
+        const grid = container.querySelector('.prompt-grid');
+
+        if (!prompts.length) {
+            grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted);background:var(--bg-2);border-radius:var(--radius-lg);">This collection is empty.</div>`;
+            return;
+        }
+
+        grid.innerHTML = prompts.map(p => promptCardHTML({ ...p, isSaved: true })).join('');
+        attachCopyHandlers(grid);
+
+        // Allow removing from collection
+        grid.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-save-prompt-id]');
             if (!btn) return;
-            const promptId = btn.dataset.saveId;
+            const promptId = btn.dataset.savePromptId;
             btn.disabled = true;
             try {
-                await toggleSave(promptId);
+                await toggleCollectionPrompt(collectionId, promptId);
                 btn.closest('.prompt-card')?.remove();
-                if (!container.querySelector('.prompt-card')) loadBookmarks();
             } catch {
                 btn.disabled = false;
             }
         });
+
     } catch (err) {
-        container.innerHTML = `<p style="color:#f87171;padding:2rem;">Failed to load bookmarks: ${err.message}</p>`;
+        container.querySelector('.prompt-grid').innerHTML = `<p style="color:#f87171;padding:2rem;grid-column:1/-1;">Failed to load prompts: ${err.message}</p>`;
     }
 };
 
@@ -146,4 +198,4 @@ const loadAccount = () => {
 };
 
 // ─── Init — load default tab ──────────────────────────────────────────────────
-loadBookmarks();
+loadCollections();

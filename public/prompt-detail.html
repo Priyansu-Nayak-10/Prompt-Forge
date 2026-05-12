@@ -118,6 +118,35 @@
 
   <div id="footer-container"></div>
 </div>
+
+<!-- Save to Collection Modal -->
+<div class="modal-overlay" id="collection-modal" style="display:none; z-index: 1000;">
+  <div class="modal-box" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <h3 style="font-size:1.125rem;font-weight:700;color:var(--text);">Save to Collection</h3>
+      <button class="modal-close" onclick="document.getElementById('collection-modal').style.display='none'">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div style="margin-bottom:1.5rem;">
+      <label class="label" style="display:block;margin-bottom:0.5rem;">Select Collection</label>
+      <div id="collection-list" style="display:flex;flex-direction:column;gap:0.5rem;max-height:200px;overflow-y:auto;margin-bottom:1rem;">
+        <!-- Filled by JS -->
+        <div style="color:var(--text-muted);font-size:0.875rem;text-align:center;padding:1rem 0;">Loading collections...</div>
+      </div>
+    </div>
+    
+    <div style="border-top:1px solid var(--border);padding-top:1.5rem;">
+      <label class="label" for="new-col-name" style="display:block;margin-bottom:0.5rem;">Or Create New</label>
+      <div style="display:flex;gap:0.5rem;">
+        <input type="text" id="new-col-name" class="input" placeholder="e.g. SEO Prompts" style="flex:1;">
+        <button id="create-col-btn" class="btn btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="/js/pages/detail.js"></script>
 <script type="module" src="/js/theme.js"></script>
 </body>

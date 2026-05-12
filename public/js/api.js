@@ -160,3 +160,10 @@ export const adminUploadImage = async (file) => {
         body: form,
     });
 };
+
+// ─── Collections ─────────────────────────────────────────────────────────────
+export const fetchCollections = async () => request(`${API_BASE_URL}/collections`, { headers: authHeader() });
+export const createCollection = async (name) => request(`${API_BASE_URL}/collections`, { method: 'POST', headers: authHeader(), body: JSON.stringify({ name }) });
+export const toggleCollectionPrompt = async (collectionId, promptId) => request(`${API_BASE_URL}/collections/${collectionId}/prompts`, { method: 'POST', headers: authHeader(), body: JSON.stringify({ prompt_id: promptId }) });
+export const fetchCollectionPrompts = async (collectionId) => request(`${API_BASE_URL}/collections/${collectionId}/prompts`, { headers: authHeader() });
+export const deleteCollection = async (collectionId) => request(`${API_BASE_URL}/collections/${collectionId}`, { method: 'DELETE', headers: authHeader() });

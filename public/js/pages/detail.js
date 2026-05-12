@@ -158,26 +158,104 @@ document.getElementById('copy-btn')?.addEventListener('click', async () => {
     }
 });
 
-// ─── Save Handler ─────────────────────────────────────────────────────────────
-document.getElementById('save-btn')?.addEventListener('click', async () => {
+// ─── Collections Modal Handler ──────────────────────────────────────────────────
+import { fetchCollections, createCollection, toggleCollectionPrompt } from '/js/api.js';
+
+const saveBtn = document.getElementById('save-btn');
+const modal = document.getElementById('collection-modal');
+const colList = document.getElementById('collection-list');
+const createColBtn = document.getElementById('create-col-btn');
+const newColName = document.getElementById('new-col-name');
+
+let collectionsCache = null;
+
+const renderCollections = () => {
+    if (!collectionsCache?.length) {
+        colList.innerHTML = `<div style="color:var(--text-muted);font-size:0.875rem;text-align:center;padding:1rem 0;">No collections yet. Create one below!</div>`;
+        return;
+    }
+    colList.innerHTML = collectionsCache.map(col => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius-sm);">
+        <div>
+          <div style="font-size:0.875rem;font-weight:600;color:var(--text);">${clean(col.name)}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${col.prompt_count} prompts</div>
+        </div>
+        <button class="btn btn-sm btn-secondary toggle-col-btn" data-id="${col.id}" style="padding:0.35rem 0.75rem;">
+           Save
+        </button>
+      </div>
+    `).join('');
+
+    // Attach handlers
+    document.querySelectorAll('.toggle-col-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const colId = e.currentTarget.dataset.id;
+            const originalText = e.currentTarget.textContent;
+            e.currentTarget.textContent = '...';
+            e.currentTarget.disabled = true;
+            try {
+                const res = await toggleCollectionPrompt(colId, prompt.id);
+                toast.success(res.saved ? 'Saved to collection!' : 'Removed from collection');
+                
+                // Update button state and count locally
+                const col = collectionsCache.find(c => c.id === colId);
+                if (col) col.prompt_count += res.saved ? 1 : -1;
+                
+                e.currentTarget.textContent = res.saved ? 'Saved ✓' : 'Save';
+                e.currentTarget.classList.toggle('btn-primary', res.saved);
+                e.currentTarget.classList.toggle('btn-secondary', !res.saved);
+                
+                // Update the main page save button state
+                isSaved = true; // Once saved anywhere, consider it "saved"
+                saveBtn.className = 'btn btn-primary';
+                saveBtn.innerHTML = `<svg width="16" height="16" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg> Saved`;
+            } catch (err) {
+                toast.error(err.message);
+                e.currentTarget.textContent = originalText;
+            } finally {
+                e.currentTarget.disabled = false;
+            }
+        });
+    });
+};
+
+saveBtn?.addEventListener('click', async () => {
     if (!await isAuthenticated()) {
         toast.error('Sign in to save prompts.');
         setTimeout(() => { window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`; }, 1200);
         return;
     }
-    const btn = document.getElementById('save-btn');
-    if (!btn) return;
-    btn.disabled = true;
+    
+    modal.style.display = 'flex';
+    
     try {
-        const res = await apiToggleSave(prompt.id);
-        isSaved = res.data?.saved ?? !isSaved;
-        btn.className = `btn ${isSaved ? 'btn-primary' : 'btn-secondary'}`;
-        btn.innerHTML = `<svg width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg> ${isSaved ? 'Saved' : 'Save Prompt'}`;
-        toast.success(isSaved ? 'Prompt saved!' : 'Removed from saved.');
+        if (!collectionsCache) {
+            const res = await fetchCollections();
+            collectionsCache = res.data || [];
+        }
+        renderCollections();
+    } catch (err) {
+        colList.innerHTML = `<div style="color:#f87171;font-size:0.875rem;text-align:center;padding:1rem 0;">Failed to load collections.</div>`;
+    }
+});
+
+createColBtn?.addEventListener('click', async () => {
+    const name = newColName.value.trim();
+    if (!name) return;
+    
+    createColBtn.disabled = true;
+    createColBtn.textContent = '...';
+    try {
+        const res = await createCollection(name);
+        toast.success('Collection created!');
+        newColName.value = '';
+        collectionsCache.unshift({ ...res.data, prompt_count: 0 });
+        renderCollections();
     } catch (err) {
         toast.error(err.message);
     } finally {
-        btn.disabled = false;
+        createColBtn.disabled = false;
+        createColBtn.textContent = 'Create';
     }
 });
 
