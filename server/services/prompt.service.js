@@ -7,13 +7,13 @@ const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => 
     const end   = start + limit - 1;
 
     let query = supabaseAdmin
-        .from('prompts')
+        .from(q ? 'prompts_search_view' : 'prompts')
         .select('id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id, is_trending', { count: 'exact' })
         .eq('status', 'published');
 
     if (category) query = query.eq('category_id', category);
     if (tool)     query = query.ilike('supported_tools', `%${tool}%`);
-    if (q)        query = query.ilike('title', `%${q}%`);
+    if (q)        query = query.ilike('search_vector', `%${q}%`);
 
     if (sort === 'trending') {
         query = query

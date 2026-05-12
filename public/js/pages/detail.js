@@ -262,3 +262,112 @@ createColBtn?.addEventListener('click', async () => {
 // ─── View Tracking (non-blocking, fires once per page load) ───────────────────
 // Small delay ensures the page has rendered before we count the view
 setTimeout(() => trackView(prompt.id), 1500);
+
+// ─── Reviews Logic ──────────────────────────────────────────────────────────
+const reviewsList = document.getElementById('reviews-list');
+const avgRatingEl = document.getElementById('avg-rating');
+const reviewFormContainer = document.getElementById('review-form-container');
+
+const loadReviews = async () => {
+    if (!reviewsList) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/reviews/${prompt.id}`);
+        const { data: reviews } = await res.json();
+        
+        if (!reviews || !reviews.length) {
+            reviewsList.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text-muted);background:var(--bg-2);border-radius:var(--radius-lg);">No reviews yet. Be the first to share your experience!</div>`;
+            return;
+        }
+
+        // Calculate average
+        const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
+        if (avgRatingEl) {
+            avgRatingEl.innerHTML = `<span>★ ${avg.toFixed(1)}</span> <span style="font-size:0.875rem;color:var(--text-muted);font-weight:400;">(${reviews.length} reviews)</span>`;
+        }
+
+        reviewsList.innerHTML = reviews.map(r => {
+            const date = new Date(r.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            const avatarUrl = r.profiles?.avatar_url;
+            const displayName = r.profiles?.display_name || 'Anonymous User';
+            
+            return `
+              <div class="review-item">
+                <div class="review-author">
+                  <div class="review-avatar">
+                    ${avatarUrl ? `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;">` : '👤'}
+                  </div>
+                  <div style="flex:1;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;">
+                       <span style="font-weight:600;font-size:0.9375rem;">${clean(displayName)}</span>
+                       <span style="font-size:0.75rem;color:var(--text-muted);">${date}</span>
+                    </div>
+                    <div style="color:#fbbf24;font-size:0.8125rem;margin-top:0.15rem;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                  </div>
+                </div>
+                ${r.comment ? `<p style="font-size:0.875rem;line-height:1.6;color:var(--text-subtle);">${clean(r.comment)}</p>` : ''}
+              </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Failed to load reviews', err);
+    }
+};
+
+// Handle Star Rating UI
+const starBtns = document.querySelectorAll('.star-btn');
+const ratingValue = document.getElementById('rating-value');
+
+starBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const val = parseInt(btn.dataset.val);
+        ratingValue.value = val;
+        starBtns.forEach((b, i) => {
+            b.classList.toggle('active', i < val);
+        });
+    });
+});
+
+// Review Form Submission
+const reviewForm = document.getElementById('review-form');
+if (reviewForm) {
+    reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rating = parseInt(ratingValue.value);
+        if (rating === 0) return toast.error('Please select a star rating');
+        
+        const comment = document.getElementById('review-comment').value.trim();
+        const submitBtn = document.getElementById('submit-review-btn');
+        submitBtn.disabled = true;
+        
+        try {
+            const token = localStorage.getItem('sb_access_token');
+            const res = await fetch(`${API_BASE_URL}/reviews/${prompt.id}`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ rating, comment })
+            });
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'Failed to submit review');
+            
+            toast.success('Review submitted!');
+            reviewForm.reset();
+            starBtns.forEach(b => b.classList.remove('active'));
+            ratingValue.value = 0;
+            loadReviews();
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+}
+
+// Show form if authenticated
+if (authed && reviewFormContainer) {
+    reviewFormContainer.style.display = 'block';
+}
+
+loadReviews();

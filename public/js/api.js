@@ -93,6 +93,24 @@ export const submitPrompt = async (data) => {
     });
 };
 
+export const updateUserProfile = async (data) => {
+    return request(`${API_BASE_URL}/user/profile`, {
+        method: 'PUT',
+        headers: authHeader(),
+        body: JSON.stringify(data),
+    });
+};
+
+export const uploadUserAvatar = async (file) => {
+    const form = new FormData();
+    form.append('avatar', file);
+    return request(`${API_BASE_URL}/user/avatar`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: form,
+    });
+};
+
 // --- Admin APIs (requires Authorization header) ---
 
 export const adminCreatePrompt = async (data) => {

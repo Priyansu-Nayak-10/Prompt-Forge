@@ -113,6 +113,48 @@
       </a>
 
       <div id="prompt-content" class="animate-fade-up"></div>
+
+      <!-- Reviews Section -->
+      <section id="reviews-section" class="animate-fade-up" style="margin-top:4rem;padding-top:3rem;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
+          <h2 style="font-size:1.5rem;font-weight:800;">Community Reviews</h2>
+          <div id="avg-rating" style="display:flex;align-items:center;gap:0.5rem;font-weight:700;color:#fbbf24;"></div>
+        </div>
+        
+        <div id="review-form-container" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.75rem;margin-bottom:2.5rem;display:none;">
+          <h3 style="font-size:1rem;margin-bottom:1.25rem;">Write a Review</h3>
+          <form id="review-form">
+            <div style="margin-bottom:1.25rem;">
+              <label class="label">Rating</label>
+              <div id="star-rating" style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+                <button type="button" class="star-btn" data-val="1">★</button>
+                <button type="button" class="star-btn" data-val="2">★</button>
+                <button type="button" class="star-btn" data-val="3">★</button>
+                <button type="button" class="star-btn" data-val="4">★</button>
+                <button type="button" class="star-btn" data-val="5">★</button>
+              </div>
+              <input type="hidden" id="rating-value" value="0">
+            </div>
+            <div style="margin-bottom:1.25rem;">
+              <label class="label">Comment (Optional)</label>
+              <textarea id="review-comment" class="input" style="height:100px;resize:vertical;" placeholder="What did you think of this prompt?"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" id="submit-review-btn">Submit Review</button>
+          </form>
+        </div>
+        
+        <div id="reviews-list" style="display:flex;flex-direction:column;gap:1.5rem;">
+          <div style="text-align:center;padding:2rem;color:var(--text-muted);">Loading reviews...</div>
+        </div>
+      </section>
+
+      <style>
+        .star-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-subtle); cursor: pointer; transition: color 0.2s; padding: 0; }
+        .star-btn:hover, .star-btn.active { color: #fbbf24; }
+        .review-item { padding: 1.5rem; background: rgba(255,255,255,0.02); border-radius: var(--radius-lg); border: 1px solid var(--border); }
+        .review-author { display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; }
+        .review-avatar { width:32px; height:32px; border-radius:50%; background:var(--bg-2); display:flex; align-items:center; justify-content:center; font-size:0.8rem; overflow:hidden; border: 1px solid var(--border); }
+      </style>
     </div>
   </div>
 

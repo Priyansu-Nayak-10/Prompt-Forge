@@ -138,6 +138,7 @@ const userRoutes     = require('./routes/user.routes');
 const newsletterRoutes = require('./routes/newsletter.routes');
 const ogRoutes       = require('./routes/og.routes');
 const collectionsRoutes = require('./routes/collections.routes');
+const reviewsRoutes = require('./routes/reviews.routes');
 
 app.use('/api/prompts',  promptsRoutes);
 app.use('/api/admin',    adminRoutes);
@@ -146,6 +147,7 @@ app.use('/api/user',     userRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/og',       ogRoutes);
 app.use('/api/collections', collectionsRoutes);
+app.use('/api/reviews',  reviewsRoutes);
 app.use('/sitemap.xml',  sitemapRoutes);
 
 // ─── Dynamic SEO Injection for Prompt Pages ───────────────────────────────────

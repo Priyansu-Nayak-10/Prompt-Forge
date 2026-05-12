@@ -75,10 +75,47 @@ const submitPrompt = async (req, res) => {
     res.status(201).json({ success: true, data });
 };
 
+const updateProfile = async (req, res) => {
+    const userId = req.user.id;
+    const { display_name, avatar_url } = req.body;
+
+    const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .update({ display_name, avatar_url })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    res.json({ success: true, data });
+};
+
+const uploadAvatar = async (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, error: 'No file uploaded' });
+
+    const fileExt = req.file.originalname.split('.').pop();
+    const fileName = `${req.user.id}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabaseAdmin.storage
+        .from('avatars')
+        .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+            upsert: true
+        });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+    res.json({ success: true, url: publicUrl });
+};
+
 const getMe = async (req, res) => {
     const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('role')
+        .select('role, display_name, avatar_url')
         .eq('id', req.user.id)
         .single();
 
@@ -88,6 +125,8 @@ const getMe = async (req, res) => {
             id:    req.user.id,
             email: req.user.email,
             role:  profile?.role || 'user',
+            display_name: profile?.display_name || '',
+            avatar_url: profile?.avatar_url || ''
         },
     });
 };
@@ -96,5 +135,7 @@ module.exports = {
     getMe,
     getSavedPromptIds,
     getSubmissions,
-    submitPrompt
+    submitPrompt,
+    updateProfile,
+    uploadAvatar
 };

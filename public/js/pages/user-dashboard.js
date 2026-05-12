@@ -1,6 +1,14 @@
 import { requireAuth, signOut } from '/js/auth.js';
-import { fetchUserSubmissions } from '/js/api.js';
+import { fetchUserSubmissions, updateUserProfile, uploadUserAvatar, fetchUserProfile } from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
+import { toast } from '/js/core.js';
+
+const clean = (str) => {
+    if (!str) return '';
+    if (typeof DOMPurify !== 'undefined') return DOMPurify.sanitize(str);
+    return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+};
+
 
 // ─── Auth Guard (Moved to Init) ───────────────────────────────────────────────────────────────
 
@@ -18,7 +26,7 @@ sidebarLinks.forEach(btn => {
 
         if (tab === 'collections' && !collectionsLoaded) loadCollections();
         if (tab === 'submissions' && !submissionsLoaded) loadSubmissions();
-        if (tab === 'account') loadAccount(window.currentUser);
+        if (tab === 'account') loadAccount();
     });
 });
 
@@ -178,14 +186,80 @@ const loadSubmissions = async () => {
 };
 
 // ─── Account Settings ─────────────────────────────────────────────────────────
-const loadAccount = (user) => {
+const loadAccount = async () => {
     const emailInput = document.getElementById('account-email');
     const idInput    = document.getElementById('account-id');
-    if (user) {
-        if (emailInput) emailInput.value = user.email || '';
-        if (idInput)    idInput.value    = user.id     || '';
+    const nameInput  = document.getElementById('profile-display-name');
+    const avatarInput = document.getElementById('profile-avatar-url');
+    
+    const previewAvatar = document.getElementById('profile-preview-avatar');
+    const previewName   = document.getElementById('profile-preview-name');
+    const previewRole   = document.getElementById('profile-preview-role');
+
+    try {
+        const res = await fetchUserProfile();
+        const user = res.data;
+        
+        if (user) {
+            if (emailInput) emailInput.value = user.email || '';
+            if (idInput)    idInput.value    = user.id     || '';
+            if (nameInput)  nameInput.value  = user.display_name || '';
+            if (avatarInput) avatarInput.value = user.avatar_url || '';
+            
+            if (previewName) previewName.textContent = user.display_name || 'Anonymous';
+            if (previewRole) previewRole.textContent = user.role || 'User';
+            
+            if (previewAvatar) {
+                if (user.avatar_url) {
+                    previewAvatar.innerHTML = `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;">`;
+                } else {
+                    previewAvatar.innerHTML = '👤';
+                }
+            }
+        }
+    } catch (err) {
+        console.error('Failed to load profile', err);
     }
 };
+
+// Profile Form Listeners
+document.getElementById('profile-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('save-profile-btn');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    
+    try {
+        const display_name = document.getElementById('profile-display-name').value;
+        const avatar_url   = document.getElementById('profile-avatar-url').value;
+        
+        await updateUserProfile({ display_name, avatar_url });
+        toast.success('Profile updated successfully!');
+        loadAccount(); // Refresh preview
+    } catch (err) {
+        toast.error(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+});
+
+document.getElementById('avatar-file')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+        toast.info('Uploading avatar...');
+        const res = await uploadUserAvatar(file);
+        document.getElementById('profile-avatar-url').value = res.url;
+        loadAccount(); // Refresh preview
+        toast.success('Avatar uploaded!');
+    } catch (err) {
+        toast.error(err.message);
+    }
+});
+
 
 // ─── Init ──────────────────────────────────────────────────
 const initUserDashboard = async () => {
