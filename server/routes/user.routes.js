@@ -11,27 +11,10 @@ router.use(asyncHandler(requireUser));
 
 // --- Profile ---
 // GET /api/user/me  — lightweight profile for navbar auth UX
-router.get('/me', asyncHandler(async (req, res) => {
-    const { data: profile } = await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', req.user.id)
-        .single();
+router.get('/me', asyncHandler(userController.getMe));
 
-    res.json({
-        success: true,
-        data: {
-            id:    req.user.id,
-            email: req.user.email,
-            role:  profile?.role || 'user',
-        },
-    });
-}));
-
-// --- Saves ---
-router.get('/saves',         asyncHandler(userController.getSavedPrompts));
+// --- Saves (Deprecated: migrating to collections but IDs still used for UI state) ---
 router.get('/saves/ids',     asyncHandler(userController.getSavedPromptIds));
-router.post('/saves/toggle', asyncHandler(userController.toggleSave));
 
 // --- Submissions ---
 router.get('/submissions',              asyncHandler(userController.getSubmissions));

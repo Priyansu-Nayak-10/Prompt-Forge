@@ -73,20 +73,8 @@ const authHeader = () => {
 
 // --- User APIs (Saves, Submissions) ---
 
-export const fetchSavedPrompts = async () => {
-    return request(`${API_BASE_URL}/user/saves`, { headers: authHeader() });
-};
-
 export const fetchSavedPromptIds = async () => {
     return request(`${API_BASE_URL}/user/saves/ids`, { headers: authHeader() });
-};
-
-export const toggleSave = async (promptId) => {
-    return request(`${API_BASE_URL}/user/saves/toggle`, {
-        method: 'POST',
-        headers: authHeader(),
-        body: JSON.stringify({ promptId })
-    });
 };
 
 export const fetchUserProfile = async () => {

@@ -422,8 +422,8 @@ const loadAnalytics = async () => {
                 <div class="stat-label">Total Prompts</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" style="color:#f43f5e;">${d.total_saves || 0}</div>
-                <div class="stat-label">Total Saves</div>
+                <div class="stat-value" style="color:#f43f5e;">${d.total_collections || 0}</div>
+                <div class="stat-label">Total Collections</div>
             </div>
             <div class="stat-card">
                 <div class="stat-value" style="color:#4ade80;">${d.total_users || 0}</div>

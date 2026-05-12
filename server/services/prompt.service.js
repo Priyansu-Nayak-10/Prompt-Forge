@@ -102,43 +102,7 @@ const softDeletePrompt = async (id) => {
 };
 
 
-// --- Save / Bookmark ---
-
-const toggleSave = async (userId, promptId) => {
-    const { data: existing, error: checkErr } = await supabaseAdmin
-        .from('saves').select('id').eq('user_id', userId).eq('prompt_id', promptId).maybeSingle();
-    if (checkErr) throw checkErr;
-
-    if (existing) {
-        const { error: delErr } = await supabaseAdmin.from('saves').delete().eq('id', existing.id);
-        if (delErr) throw delErr;
-        return { saved: false };
-    } else {
-        const { error: insErr } = await supabaseAdmin
-            .from('saves').insert({ user_id: userId, prompt_id: promptId });
-        if (insErr) throw insErr;
-        return { saved: true };
-    }
-};
-
-
-const getSavedPrompts = async (userId) => {
-    const { data, error } = await supabaseAdmin
-        .from('saves')
-        .select('id, prompt_id, created_at, prompts ( id, title, slug, description, difficulty, preview_image_url, is_trending )')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data.map(save => ({ save_id: save.id, saved_at: save.created_at, ...save.prompts }));
-};
-
-
-const getSavedPromptIds = async (userId) => {
-    const { data, error } = await supabaseAdmin
-        .from('saves').select('prompt_id').eq('user_id', userId);
-    if (error) throw error;
-    return data.map(s => s.prompt_id);
-};
+// --- Legacy Saves Removed ---
 
 
 module.exports = {
@@ -149,7 +113,4 @@ module.exports = {
     createPrompt,
     updatePrompt,
     softDeletePrompt,
-    toggleSave,
-    getSavedPrompts,
-    getSavedPromptIds,
 };

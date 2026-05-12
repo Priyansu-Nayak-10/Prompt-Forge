@@ -1,25 +1,22 @@
-const promptService = require('../services/prompt.service');
 const { supabaseAdmin } = require('../config/supabase');
-
-const toggleSave = async (req, res) => {
-    const userId = req.user.id;
-    const { promptId } = req.body;
-    if (!promptId) return res.status(400).json({ success: false, error: 'promptId is required' });
-
-    const result = await promptService.toggleSave(userId, promptId);
-    res.status(200).json({ success: true, ...result });
-};
-
-const getSavedPrompts = async (req, res) => {
-    const userId = req.user.id;
-    const data = await promptService.getSavedPrompts(userId);
-    res.status(200).json({ success: true, data });
-};
 
 const getSavedPromptIds = async (req, res) => {
     const userId = req.user.id;
-    const data = await promptService.getSavedPromptIds(userId);
-    res.status(200).json({ success: true, data });
+    // Find all prompt IDs the user has in ANY collection
+    const { data, error } = await supabaseAdmin
+        .from('collections')
+        .select('collection_prompts(prompt_id)')
+        .eq('user_id', userId);
+        
+    if (error) throw error;
+    
+    // Flatten the array of arrays
+    const ids = new Set();
+    data.forEach(col => {
+        col.collection_prompts.forEach(p => ids.add(p.prompt_id));
+    });
+    
+    res.status(200).json({ success: true, data: Array.from(ids) });
 };
 
 const getSubmissions = async (req, res) => {
@@ -63,9 +60,25 @@ const submitPrompt = async (req, res) => {
     res.status(201).json({ success: true, data });
 };
 
+const getMe = async (req, res) => {
+    const { data: profile } = await supabaseAdmin
+        .from('profiles')
+        .select('role')
+        .eq('id', req.user.id)
+        .single();
+
+    res.json({
+        success: true,
+        data: {
+            id:    req.user.id,
+            email: req.user.email,
+            role:  profile?.role || 'user',
+        },
+    });
+};
+
 module.exports = {
-    toggleSave,
-    getSavedPrompts,
+    getMe,
     getSavedPromptIds,
     getSubmissions,
     submitPrompt

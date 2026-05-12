@@ -1,4 +1,4 @@
-import { fetchPromptBySlug, trackCopy, trackView, toggleSave as apiToggleSave, fetchSavedPromptIds } from '/js/api.js';
+import { fetchPromptBySlug, trackCopy, trackView, fetchSavedPromptIds } from '/js/api.js';
 import { toast } from '/js/core.js';
 import { isAuthenticated } from '/js/auth.js';
 

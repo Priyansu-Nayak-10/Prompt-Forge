@@ -1,5 +1,5 @@
 import { fetchPrompts, fetchSavedPromptIds } from '/js/api.js';
-import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '/js/components/promptCard.js';
+import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 import { isAuthenticated } from '/js/auth.js';
 
 document.title = 'PromptForge — AI Prompt Discovery Platform';
@@ -56,7 +56,6 @@ try {
 
         grid.innerHTML = prompts.map(p => promptCardHTML({ ...p, isSaved: savedIds.includes(p.id) })).join('');
         attachCopyHandlers(grid);
-        attachSaveHandlers(grid);
     }
 } catch (err) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#f87171">${err.message}</div>`;

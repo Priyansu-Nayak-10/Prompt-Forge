@@ -1,5 +1,5 @@
 import { fetchPrompts, fetchCategories, fetchSavedPromptIds } from '/js/api.js';
-import { promptCardHTML, attachCopyHandlers, attachSaveHandlers } from '/js/components/promptCard.js';
+import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 import { isAuthenticated } from '/js/auth.js';
 import { renderPagination } from '/js/components/pagination.js';
 import { showSkeletons, showEmpty, showError } from '/js/core.js';
@@ -70,7 +70,6 @@ const loadPrompts = async () => {
 
         grid.innerHTML = res.data.map(p => promptCardHTML({ ...p, isSaved: savedIds.includes(p.id) })).join('');
         attachCopyHandlers(grid);
-        attachSaveHandlers(grid);
         renderPagination(pagEl, res.metadata, (newPage) => {
             state.page = newPage;
             pushURL();

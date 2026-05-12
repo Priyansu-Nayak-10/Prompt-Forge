@@ -16,18 +16,10 @@ router.post('/:id/copy', analyticsLimiter, asyncHandler(promptsController.increm
 router.post('/:id/view', analyticsLimiter, asyncHandler(promptsController.incrementView));
 
 // GET /api/prompts/discovery/categories
-router.get('/discovery/categories', asyncHandler(async (req, res) => {
-    const { data, error } = await supabaseAdmin.from('categories').select('id, name, slug, icon').order('name');
-    if (error) throw error;
-    res.json({ success: true, data });
-}));
+router.get('/discovery/categories', asyncHandler(promptsController.getCategories));
 
 // GET /api/prompts/discovery/tools
-router.get('/discovery/tools', asyncHandler(async (req, res) => {
-    const { data, error } = await supabaseAdmin.from('tools').select('id, name, slug, logo_url').order('name');
-    if (error) throw error;
-    res.json({ success: true, data });
-}));
+router.get('/discovery/tools', asyncHandler(promptsController.getTools));
 
 // GET /api/prompts/:slug  (must be last)
 router.get('/:slug', asyncHandler(promptsController.getPrompt));

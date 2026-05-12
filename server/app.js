@@ -164,14 +164,15 @@ app.get('/prompt-detail.html', (req, res, next) => {
     });
 });
 
-// ─── SPA Fallback ─────────────────────────────────────────────────────────────
-app.get('/*path', (req, res, next) => {
+// ─── 404 Not Found Handler (Multi-page app fallback) ──────────────────────────
+app.use((req, res, next) => {
     if (req.path.startsWith('/api/')) {
         const err = new Error(`API route not found: ${req.method} ${req.path}`);
         err.statusCode = 404;
         return next(err);
     }
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    // Redirect unknown pages to home, or ideally a dedicated 404.html. We'll send them to home for now.
+    res.redirect('/');
 });
 
 // ─── Centralised Error Handler ────────────────────────────────────────────────

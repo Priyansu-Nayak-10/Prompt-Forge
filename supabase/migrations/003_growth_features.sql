@@ -83,4 +83,4 @@ BEGIN
 END $$;
 
 -- After successful migration and verification, you can eventually drop the old 'saves' table.
--- DROP TABLE public.saves;
+DROP TABLE IF EXISTS public.saves;

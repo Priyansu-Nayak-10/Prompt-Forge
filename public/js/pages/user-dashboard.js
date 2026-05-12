@@ -1,5 +1,5 @@
 import { requireAuth, signOut } from '/js/auth.js';
-import { fetchSavedPrompts, fetchUserSubmissions, toggleSave } from '/js/api.js';
+import { fetchUserSubmissions } from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
