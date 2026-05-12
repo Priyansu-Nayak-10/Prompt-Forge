@@ -16,8 +16,15 @@ import {
 } from '/js/api.js';
 
 // ---- Auth guard ----
-const user = await requireAdmin('/login.html');
-if (!user) throw new Error('Not authorized');
+let user;
+try {
+    user = await requireAdmin('/login.html');
+    if (!user) return; // requireAdmin handles redirect
+} catch (err) {
+    console.error('Auth error:', err);
+    window.location.href = '/user-dashboard.html';
+    return;
+}
 
 document.getElementById('user-email').textContent = user.email;
 

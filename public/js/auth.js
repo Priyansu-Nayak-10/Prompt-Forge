@@ -105,9 +105,27 @@ export const requireAuth = async (redirectTo = '/login.html') => {
     return session.user;
 };
 
-// Alias kept for backward compat; frontend admin check is visual-only —
-// actual admin enforcement is server-side via requireAdmin middleware.
-export const requireAdmin = requireAuth;
+/**
+ * Securely verify that a user is both authenticated and has the 'admin' role.
+ * This is used for frontend route guarding.
+ */
+export const requireAdmin = async (redirectTo = '/login.html') => {
+    const user = await requireAuth(redirectTo);
+    if (!user) return null;
+
+    try {
+        const { fetchUserProfile } = await import('/js/api.js');
+        const res = await fetchUserProfile();
+        if (res?.data?.role !== 'admin') {
+            window.location.href = '/user-dashboard.html';
+            return null;
+        }
+        return user;
+    } catch (err) {
+        window.location.href = redirectTo;
+        return null;
+    }
+};
 
 export const redirectIfLoggedIn = async (defaultTo = '/dashboard.html') => {
     const session = await getSession();
