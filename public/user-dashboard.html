@@ -131,7 +131,13 @@
         <h1 class="page-title">My Collections</h1>
         <p class="page-subtitle">Manage your folders of favorite prompts.</p>
       </div>
-      <a href="/prompts.html" class="btn btn-primary">Discover More</a>
+      <div style="display:flex;gap:0.75rem;">
+        <button id="new-collection-btn" class="btn btn-primary" style="display:flex;align-items:center;gap:0.5rem;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Folder
+        </button>
+        <a href="/prompts.html" class="btn btn-secondary">Discover More</a>
+      </div>
     </div>
     
     <div id="collections-container">
@@ -229,6 +235,33 @@
     </style>
   </div>
 </main>
+
+<!-- ── Create Collection Modal ──────────────────────────────────────── -->
+<div id="col-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;align-items:center;justify-content:center;">
+  <div id="col-modal-box" style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:420px;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+    <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:1.25rem;">New Collection</h3>
+    <div style="margin-bottom:1.25rem;">
+      <label class="label">Folder Name</label>
+      <input id="col-name-input" type="text" class="input" placeholder="e.g. My Favourite Prompts" maxlength="80" autocomplete="off">
+    </div>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button id="col-modal-cancel" class="btn btn-secondary">Cancel</button>
+      <button id="col-modal-create" class="btn btn-primary">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Delete Collection Confirm Modal ──────────────────────────────── -->
+<div id="col-delete-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:380px;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+    <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:0.75rem;">Delete Collection?</h3>
+    <p id="col-delete-msg" style="color:var(--text-muted);font-size:0.875rem;margin-bottom:1.5rem;">This will permanently delete the collection and remove all saved prompts from it.</p>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+      <button id="col-delete-cancel" class="btn btn-secondary">Cancel</button>
+      <button id="col-delete-confirm" class="btn" style="background:#ef4444;color:#fff;">Delete</button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="/js/pages/user-dashboard.js"></script>
 <script type="module" src="/js/theme.js"></script>

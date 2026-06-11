@@ -394,11 +394,180 @@ const loadAdminCategories = async () => {
 };
 
 // ---- Load Tools ----
+let toolsCache = [];
+
 const loadTools = async () => {
     const tableBody = document.getElementById('tools-table-body');
-    // Fetching from a hypothetical endpoint or just showing empty state if not yet implemented
-    tableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Tools management coming soon.</div>`;
+    tableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">Loading...</div>`;
+
+    try {
+        const res = await fetch('/api/prompts/discovery/tools');
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to load tools');
+
+        toolsCache = json.data || [];
+
+        if (toolsCache.length === 0) {
+            tableBody.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--text-muted);font-size:0.875rem;">No tools found.</div>`;
+            return;
+        }
+
+        tableBody.innerHTML = toolsCache.map(t => {
+            const logo = t.logo_url 
+                ? `<img src="${t.logo_url}" style="width:30px;height:30px;object-fit:contain;border-radius:4px;background:var(--bg-3);">` 
+                : `<span style="font-size:1.2rem;">🤖</span>`;
+            return `
+                <div class="table-row-item" style="grid-template-columns: 80px 1fr 140px 140px;">
+                    <div>${logo}</div>
+                    <div style="font-size:0.875rem;font-weight:600;color:var(--text);">${t.name}</div>
+                    <div style="font-size:0.875rem;color:var(--text-muted);">${t.slug}</div>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <button class="btn btn-secondary btn-sm edit-tool-btn" data-id="${t.id}">Edit</button>
+                        <button class="btn btn-danger btn-sm delete-tool-btn" data-id="${t.id}">Delete</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // Attach event listeners
+        tableBody.querySelectorAll('.edit-tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => openEditTool(toolsCache.find(t => t.id === btn.dataset.id)));
+        });
+        tableBody.querySelectorAll('.delete-tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteTool(btn.dataset.id, btn));
+        });
+    } catch (err) {
+        tableBody.innerHTML = `<div style="padding:2rem;text-align:center;color:#f87171;font-size:0.875rem;">${err.message}</div>`;
+    }
 };
+
+const openCreateTool = () => {
+    const modal = document.getElementById('tool-modal');
+    const form = document.getElementById('tool-form');
+    document.getElementById('tool-modal-title').textContent = 'New Tool';
+    form.reset();
+    document.getElementById('tool-form-id').value = '';
+    document.getElementById('tool-logo-preview').style.display = 'none';
+    modal.style.display = 'flex';
+    document.getElementById('tool-form-name').focus();
+};
+
+const openEditTool = (tool) => {
+    const modal = document.getElementById('tool-modal');
+    document.getElementById('tool-modal-title').textContent = 'Edit Tool';
+    document.getElementById('tool-form-id').value = tool.id;
+    document.getElementById('tool-form-name').value = tool.name;
+    document.getElementById('tool-form-logo-url').value = tool.logo_url || '';
+    if (tool.logo_url) {
+        document.getElementById('tool-preview-img').src = tool.logo_url;
+        document.getElementById('tool-logo-preview').style.display = 'block';
+    } else {
+        document.getElementById('tool-logo-preview').style.display = 'none';
+    }
+    modal.style.display = 'flex';
+    document.getElementById('tool-form-name').focus();
+};
+
+const closeToolModal = () => {
+    document.getElementById('tool-modal').style.display = 'none';
+    document.getElementById('tool-form').reset();
+};
+
+const deleteTool = async (id, btn) => {
+    if (!confirm('Are you sure you want to delete this tool?')) return;
+    const restore = setButtonLoading(btn, '...');
+    try {
+        const res = await fetch(`/api/admin/tools/${id}`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${localStorage.getItem('sb_access_token')}` }
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to delete');
+        toast.success('Tool deleted successfully!');
+        loadTools();
+    } catch (err) {
+        toast.error(err.message);
+        restore();
+    }
+};
+
+// Tool logo upload
+document.getElementById('tool-upload-logo-btn')?.addEventListener('click', () => document.getElementById('tool-form-logo-file').click());
+document.getElementById('tool-form-logo-file')?.addEventListener('change', async () => {
+    const file = document.getElementById('tool-form-logo-file').files[0];
+    if (!file) return;
+    const uploadBtn = document.getElementById('tool-upload-logo-btn');
+    const restore = setButtonLoading(uploadBtn, '...');
+    try {
+        const res = await adminUploadImage(file);
+        document.getElementById('tool-form-logo-url').value = res.url;
+        document.getElementById('tool-preview-img').src = res.url;
+        document.getElementById('tool-logo-preview').style.display = 'block';
+        toast.success('Logo uploaded!');
+    } catch (err) {
+        toast.error(`Upload failed: ${err.message}`);
+    } finally {
+        restore();
+        document.getElementById('tool-form-logo-file').value = '';
+    }
+});
+
+document.getElementById('tool-form-logo-url')?.addEventListener('input', () => {
+    const url = document.getElementById('tool-form-logo-url').value.trim();
+    const preview = document.getElementById('tool-logo-preview');
+    const img = document.getElementById('tool-preview-img');
+    if (url) {
+        img.src = url;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+// Tool form submit
+document.getElementById('tool-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('tool-form-name').value.trim();
+    const logo_url = document.getElementById('tool-form-logo-url').value.trim();
+    if (!name) return toast.warning('Tool name is required.');
+
+    const submitBtn = document.getElementById('tool-form-submit');
+    const restore = setButtonLoading(submitBtn, 'Saving...');
+    const id = document.getElementById('tool-form-id').value;
+
+    const payload = { name, logo_url: logo_url || undefined };
+
+    try {
+        const url = id ? `/api/admin/tools/${id}` : '/api/admin/tools';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('sb_access_token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Failed to save');
+
+        toast.success(id ? 'Tool updated!' : 'Tool created!');
+        closeToolModal();
+        loadTools();
+    } catch (err) {
+        toast.error(err.message);
+        restore();
+    }
+});
+
+// Close modal when clicking background
+document.getElementById('tool-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('tool-modal')) closeToolModal();
+});
+document.getElementById('tool-modal-close')?.addEventListener('click', closeToolModal);
+document.getElementById('tool-modal-cancel')?.addEventListener('click', closeToolModal);
+document.getElementById('create-tool-btn')?.addEventListener('click', openCreateTool);
+
 
 // ---- Load Analytics ----
 const loadAnalytics = async () => {

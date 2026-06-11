@@ -239,11 +239,17 @@
         <h1 class="page-title">Tools</h1>
         <p class="page-subtitle">Manage supported AI tools.</p>
       </div>
+      <button id="create-tool-btn" class="btn btn-primary">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        New Tool
+      </button>
     </div>
     <div class="table-wrap">
-      <div class="table-header" style="grid-template-columns: 1fr 140px;">
+      <div class="table-header" style="grid-template-columns: 80px 1fr 140px 140px;">
+        <span>Logo</span>
         <span>Name</span>
         <span>Slug</span>
+        <span>Actions</span>
       </div>
       <div id="tools-table-body"></div>
     </div>
@@ -280,6 +286,41 @@
       <button id="rejection-cancel-btn" class="btn btn-secondary">Cancel</button>
       <button id="rejection-confirm-btn" class="btn btn-danger">Reject Submission</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Tool CRUD Modal ───────────────────────────────────────────────────────── -->
+<div id="tool-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);">
+      <h2 class="modal-title" id="tool-modal-title" style="font-size:1.125rem;font-weight:700;">New Tool</h2>
+      <button id="tool-modal-close" class="modal-close">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <form id="tool-form" novalidate style="display:flex;flex-direction:column;gap:1.25rem;">
+      <input type="hidden" id="tool-form-id">
+      <div class="field">
+        <label class="label">Tool Name *</label>
+        <input id="tool-form-name" type="text" class="input" placeholder="e.g. Midjourney" required>
+      </div>
+      <div class="field">
+        <label class="label">Logo URL</label>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <input id="tool-form-logo-url" type="text" class="input" placeholder="https://... or upload below" style="flex:1;">
+          <input id="tool-form-logo-file" type="file" accept="image/*" style="display:none;">
+          <button type="button" id="tool-upload-logo-btn" class="btn btn-secondary">Upload</button>
+        </div>
+        <div id="tool-logo-preview" style="display:none;margin-top:0.75rem;">
+          <img id="tool-preview-img" src="" alt="Tool Logo" class="img-preview" style="height:60px;width:60px;object-fit:contain;">
+        </div>
+      </div>
+      <div class="modal-footer" style="margin-top:0.5rem;">
+        <button type="button" id="tool-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="submit" id="tool-form-submit" class="btn btn-primary">Save Tool</button>
+      </div>
+    </form>
   </div>
 </div>
 

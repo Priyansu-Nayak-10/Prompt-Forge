@@ -1,4 +1,4 @@
-import { fetchPromptBySlug, trackCopy, trackView, fetchSavedPromptIds } from '/js/api.js';
+import { fetchPromptBySlug, trackCopy, trackView, fetchSavedPromptIds, fetchLikedPromptIds, likePrompt, unlikePrompt } from '/js/api.js';
 import { toast } from '/js/core.js';
 import { isAuthenticated } from '/js/auth.js';
 
@@ -21,6 +21,7 @@ if (!slug) {
 
 let prompt = null;
 let isSaved = false;
+let isLiked = false;
 
 try {
     const res = await fetchPromptBySlug(slug);
@@ -62,8 +63,12 @@ link.href = canonical;
 const authed = await isAuthenticated();
 if (authed) {
     try {
-        const saveRes = await fetchSavedPromptIds();
+        const [saveRes, likeRes] = await Promise.all([
+            fetchSavedPromptIds().catch(() => ({ data: [] })),
+            fetchLikedPromptIds().catch(() => ({ data: [] }))
+        ]);
         isSaved = (saveRes.data || []).includes(prompt.id);
+        isLiked = (likeRes.data || []).includes(prompt.id);
     } catch { /* non-fatal */ }
 }
 
@@ -114,17 +119,25 @@ if (container) {
               <svg width="16" height="16" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
               ${isSaved ? 'Saved' : 'Save Prompt'}
             </button>
+            <button id="like-page-btn" class="btn ${isLiked ? 'btn-primary' : 'btn-secondary'}" style="width:100%;gap:0.5rem;${isLiked ? 'background:#ef4444;color:#fff;border-color:#ef4444;' : ''}" data-prompt-id="${prompt.id}">
+              <svg width="16" height="16" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              <span>${isLiked ? 'Liked' : 'Like Prompt'}</span>
+            </button>
             <button id="tip-btn" class="btn btn-secondary" style="width:100%;gap:0.5rem;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;">
               ☕ Tip Creator ($5)
             </button>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-              <div style="text-align:center;padding:0.75rem;background:var(--bg-2);border-radius:var(--radius-sm);">
-                <div style="font-size:1.25rem;font-weight:800;">${(prompt.view_count || 0).toLocaleString()}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem;">Views</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
+              <div style="text-align:center;padding:0.75rem 0.25rem;background:var(--bg-2);border-radius:var(--radius-sm);">
+                <div style="font-size:1.1rem;font-weight:800;">${(prompt.view_count || 0).toLocaleString()}</div>
+                <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;">Views</div>
               </div>
-              <div style="text-align:center;padding:0.75rem;background:var(--bg-2);border-radius:var(--radius-sm);">
-                <div style="font-size:1.25rem;font-weight:800;">${(prompt.copy_count || 0).toLocaleString()}</div>
-                <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem;">Copies</div>
+              <div style="text-align:center;padding:0.75rem 0.25rem;background:var(--bg-2);border-radius:var(--radius-sm);">
+                <div style="font-size:1.1rem;font-weight:800;">${(prompt.copy_count || 0).toLocaleString()}</div>
+                <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;">Copies</div>
+              </div>
+              <div style="text-align:center;padding:0.75rem 0.25rem;background:var(--bg-2);border-radius:var(--radius-sm);">
+                <div style="font-size:1.1rem;font-weight:800;" id="like-count-el">${(prompt.like_count || 0).toLocaleString()}</div>
+                <div style="font-size:0.65rem;color:var(--text-muted);margin-top:0.2rem;">Likes</div>
               </div>
             </div>
             <div style="font-size:0.78rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:0.875rem;">
@@ -158,6 +171,48 @@ document.getElementById('copy-btn')?.addEventListener('click', async () => {
         trackCopy(prompt.id);
     } catch {
         toast.error('Copy failed. Please select and copy manually.');
+    }
+});
+
+// ─── Like Handler ─────────────────────────────────────────────────────────────
+document.getElementById('like-page-btn')?.addEventListener('click', async () => {
+    if (!await isAuthenticated()) {
+        toast.error('Sign in to like prompts.');
+        setTimeout(() => { window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`; }, 1200);
+        return;
+    }
+    const btn = document.getElementById('like-page-btn');
+    const label = btn.querySelector('span');
+    const svg = btn.querySelector('svg');
+    const likeCountEl = document.getElementById('like-count-el');
+    
+    btn.disabled = true;
+    
+    try {
+        if (isLiked) {
+            await unlikePrompt(prompt.id);
+            isLiked = false;
+            btn.className = 'btn btn-secondary';
+            btn.style.cssText = 'width:100%;gap:0.5rem;';
+            svg.setAttribute('fill', 'none');
+            label.textContent = 'Like Prompt';
+            prompt.like_count = Math.max(0, (prompt.like_count || 0) - 1);
+            toast.success('Like removed.');
+        } else {
+            await likePrompt(prompt.id);
+            isLiked = true;
+            btn.className = 'btn btn-primary';
+            btn.style.cssText = 'width:100%;gap:0.5rem;background:#ef4444;color:#fff;border-color:#ef4444;';
+            svg.setAttribute('fill', 'currentColor');
+            label.textContent = 'Liked';
+            prompt.like_count = (prompt.like_count || 0) + 1;
+            toast.success('Prompt liked!');
+        }
+        if (likeCountEl) likeCountEl.textContent = prompt.like_count.toLocaleString();
+    } catch (err) {
+        toast.error(err.message || 'Action failed.');
+    } finally {
+        btn.disabled = false;
     }
 });
 

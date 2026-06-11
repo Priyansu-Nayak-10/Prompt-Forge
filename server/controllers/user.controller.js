@@ -19,6 +19,57 @@ const getSavedPromptIds = async (req, res) => {
     res.status(200).json({ success: true, data: Array.from(ids) });
 };
 
+const getLikedPromptIds = async (req, res) => {
+    const userId = req.user.id;
+    const { data, error } = await supabaseAdmin
+        .from('likes')
+        .select('prompt_id')
+        .eq('user_id', userId);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, data: data.map(l => l.prompt_id) });
+};
+
+const likePrompt = async (req, res) => {
+    const userId = req.user.id;
+    const { promptId } = req.params;
+
+    const { data: existing, error: checkError } = await supabaseAdmin
+        .from('likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('prompt_id', promptId)
+        .maybeSingle();
+
+    if (checkError) throw checkError;
+    if (existing) {
+        return res.status(200).json({ success: true, message: 'Already liked' });
+    }
+
+    const { data, error } = await supabaseAdmin
+        .from('likes')
+        .insert([{ user_id: userId, prompt_id: promptId }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    res.status(201).json({ success: true, data });
+};
+
+const unlikePrompt = async (req, res) => {
+    const userId = req.user.id;
+    const { promptId } = req.params;
+
+    const { error } = await supabaseAdmin
+        .from('likes')
+        .delete()
+        .eq('user_id', userId)
+        .eq('prompt_id', promptId);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Like removed' });
+};
+
 const getSubmissions = async (req, res) => {
     const userId = req.user.id;
     const page = parseInt(req.query.page) || 1;
@@ -150,6 +201,9 @@ const getMe = async (req, res) => {
 module.exports = {
     getMe,
     getSavedPromptIds,
+    getLikedPromptIds,
+    likePrompt,
+    unlikePrompt,
     getSubmissions,
     submitPrompt,
     updateProfile,

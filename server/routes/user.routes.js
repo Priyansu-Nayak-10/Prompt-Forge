@@ -23,6 +23,11 @@ router.post('/avatar', upload.single('avatar'), asyncHandler(userController.uplo
 // --- Saves (Deprecated: migrating to collections but IDs still used for UI state) ---
 router.get('/saves/ids',     asyncHandler(userController.getSavedPromptIds));
 
+// --- Likes ---
+router.get('/likes/ids',     asyncHandler(userController.getLikedPromptIds));
+router.post('/likes/:promptId',   asyncHandler(userController.likePrompt));
+router.delete('/likes/:promptId', asyncHandler(userController.unlikePrompt));
+
 // --- Submissions ---
 router.get('/submissions',              asyncHandler(userController.getSubmissions));
 router.post('/submissions', authLimiter, asyncHandler(userController.submitPrompt));

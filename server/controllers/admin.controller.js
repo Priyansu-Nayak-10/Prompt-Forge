@@ -138,6 +138,54 @@ const getAnalytics = async (req, res) => {
     });
 };
 
+const createTool = async (req, res) => {
+    const { name, logo_url } = req.body;
+    if (!name) return res.status(400).json({ success: false, error: 'Tool name is required' });
+
+    const slugify = require('slugify');
+    const slug = slugify(name, { lower: true, strict: true });
+
+    const { data, error } = await supabaseAdmin
+        .from('tools')
+        .insert([{ name, slug, logo_url }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    res.status(201).json({ success: true, data });
+};
+
+const updateTool = async (req, res) => {
+    const { id } = req.params;
+    const { name, logo_url } = req.body;
+    if (!name) return res.status(400).json({ success: false, error: 'Tool name is required' });
+
+    const slugify = require('slugify');
+    const slug = slugify(name, { lower: true, strict: true });
+
+    const { data, error } = await supabaseAdmin
+        .from('tools')
+        .update({ name, slug, logo_url })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) throw error;
+    res.status(200).json({ success: true, data });
+};
+
+const deleteTool = async (req, res) => {
+    const { id } = req.params;
+
+    const { error } = await supabaseAdmin
+        .from('tools')
+        .delete()
+        .eq('id', id);
+
+    if (error) throw error;
+    res.status(200).json({ success: true, message: 'Tool deleted successfully' });
+};
+
 module.exports = {
     createPrompt,
     updatePrompt,
@@ -146,5 +194,8 @@ module.exports = {
     getSubmissions,
     updateSubmissionStatus,
     getUsers,
-    getAnalytics
+    getAnalytics,
+    createTool,
+    updateTool,
+    deleteTool
 };

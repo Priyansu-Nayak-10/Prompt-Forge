@@ -1,4 +1,4 @@
-import { fetchPrompts, fetchSavedPromptIds } from '/js/api.js';
+import { fetchPrompts, fetchSavedPromptIds, fetchLikedPromptIds } from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 import { isAuthenticated } from '/js/auth.js';
 
@@ -47,14 +47,23 @@ try {
         grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--text-muted)">No trending prompts yet.</div>`;
     } else {
         let savedIds = [];
+        let likedIds = [];
         if (await isAuthenticated()) {
             try {
-                const saveRes = await fetchSavedPromptIds();
+                const [saveRes, likeRes] = await Promise.all([
+                    fetchSavedPromptIds().catch(() => ({ success: false, data: [] })),
+                    fetchLikedPromptIds().catch(() => ({ success: false, data: [] }))
+                ]);
                 if (saveRes.success) savedIds = saveRes.data || [];
+                if (likeRes.success) likedIds = likeRes.data || [];
             } catch { /* non-fatal */ }
         }
 
-        grid.innerHTML = prompts.map(p => promptCardHTML({ ...p, isSaved: savedIds.includes(p.id) })).join('');
+        grid.innerHTML = prompts.map(p => promptCardHTML({
+            ...p,
+            isSaved: savedIds.includes(p.id),
+            isLiked: likedIds.includes(p.id)
+        })).join('');
         attachCopyHandlers(grid);
     }
 } catch (err) {

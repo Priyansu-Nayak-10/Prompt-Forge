@@ -21,6 +21,20 @@ const init = async () => {
         console.warn('Failed to load categories', e);
     }
 
+    // Sync the ai-type select with the main sub-type field
+    const subTypeEl  = document.getElementById('sub-type');
+    const aiTypeEl   = document.getElementById('ai-type');
+    const aiStyleEl  = document.getElementById('ai-style');
+    const typeMap = { 'text-to-image': 'image', 'text-to-text': 'text', 'text-to-video': 'video' };
+    if (subTypeEl && aiTypeEl) {
+        subTypeEl.addEventListener('change', () => {
+            const mapped = typeMap[subTypeEl.value] || 'image';
+            aiTypeEl.value = mapped;
+        });
+        // Set initial state
+        aiTypeEl.value = typeMap[subTypeEl.value] || 'image';
+    }
+
     const counter = (id, counterId, max) => {
         const el = document.getElementById(id);
         const c  = document.getElementById(counterId);
@@ -40,6 +54,9 @@ const init = async () => {
         const text = promptInput.value.trim();
         if (!text) return toast.error('Enter a prompt first to optimize it!');
         
+        const style = aiStyleEl?.value || 'creative';
+        const type  = aiTypeEl?.value  || 'image';
+        
         const originalText = optimizeBtn.innerHTML;
         optimizeBtn.disabled = true;
         optimizeBtn.textContent = '...';
@@ -52,7 +69,7 @@ const init = async () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ prompt: text })
+                body: JSON.stringify({ prompt: text, style, type })
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Optimization failed');
@@ -63,7 +80,7 @@ const init = async () => {
             const c = document.getElementById('prompt-counter');
             if (c) c.textContent = `${n} / 5000`;
             
-            toast.success('Prompt optimized by AI! ✨');
+            toast.success(`Prompt optimized (${style}, ${type}) ✨`);
         } catch (err) {
             toast.error(err.message);
         } finally {

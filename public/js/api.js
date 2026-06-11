@@ -77,6 +77,18 @@ export const fetchSavedPromptIds = async () => {
     return request(`${API_BASE_URL}/user/saves/ids`, { headers: authHeader() });
 };
 
+export const fetchLikedPromptIds = async () => {
+    return request(`${API_BASE_URL}/user/likes/ids`, { headers: authHeader() });
+};
+
+export const likePrompt = async (id) => {
+    return request(`${API_BASE_URL}/user/likes/${id}`, { method: 'POST', headers: authHeader() });
+};
+
+export const unlikePrompt = async (id) => {
+    return request(`${API_BASE_URL}/user/likes/${id}`, { method: 'DELETE', headers: authHeader() });
+};
+
 export const fetchUserProfile = async () => {
     return request(`${API_BASE_URL}/user/me`, { headers: authHeader() });
 };

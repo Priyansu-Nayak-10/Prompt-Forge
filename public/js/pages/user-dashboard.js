@@ -32,7 +32,7 @@ sidebarLinks.forEach(btn => {
 
 
 // ─── Collections ────────────────────────────────────────────────────────────────
-import { fetchCollections, fetchCollectionPrompts, toggleCollectionPrompt } from '/js/api.js';
+import { fetchCollections, fetchCollectionPrompts, toggleCollectionPrompt, createCollection, deleteCollection } from '/js/api.js';
 
 let collectionsLoaded = false;
 
@@ -64,17 +64,33 @@ const loadCollections = async () => {
         // Render collection folders
         container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:1.5rem;">
           ${collections.map(col => `
-            <div class="prompt-card" style="padding:1.5rem;display:flex;flex-direction:column;cursor:pointer;" data-col-id="${col.id}">
+            <div class="prompt-card" style="padding:1.5rem;display:flex;flex-direction:column;cursor:pointer;position:relative;" data-col-id="${col.id}" data-col-name="${clean(col.name)}">
+              <button class="col-delete-btn" data-del-id="${col.id}" data-del-name="${clean(col.name)}"
+                style="position:absolute;top:0.75rem;right:0.75rem;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:var(--radius-sm);padding:0.3rem 0.55rem;font-size:0.75rem;cursor:pointer;line-height:1;transition:background 0.15s;"
+                title="Delete collection">
+                🗑
+              </button>
               <div style="font-size:2rem;margin-bottom:0.75rem;">📁</div>
               <h3 style="font-size:1.125rem;font-weight:700;margin-bottom:0.25rem;">${clean(col.name)}</h3>
-              <p style="color:var(--text-muted);font-size:0.875rem;">${col.prompt_count} prompts</p>
+              <p style="color:var(--text-muted);font-size:0.875rem;">${col.prompt_count} prompt${col.prompt_count === 1 ? '' : 's'}</p>
             </div>
           `).join('')}
         </div>`;
 
-        // Add click handler to view prompts inside a collection
+        // Open folder on card click (but not on delete btn)
         container.querySelectorAll('[data-col-id]').forEach(card => {
-            card.addEventListener('click', () => loadCollectionDetail(card.dataset.colId, card.querySelector('h3').textContent));
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('.col-delete-btn')) return;
+                loadCollectionDetail(card.dataset.colId, card.dataset.colName);
+            });
+        });
+
+        // Delete button
+        container.querySelectorAll('.col-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openDeleteModal(btn.dataset.delId, btn.dataset.delName);
+            });
         });
 
     } catch (err) {
@@ -261,6 +277,80 @@ document.getElementById('avatar-file')?.addEventListener('change', async (e) => 
 });
 
 
+// ─── Create Collection Modal ────────────────────────────────────────────────
+const openCreateModal = () => {
+    const overlay = document.getElementById('col-modal-overlay');
+    if (!overlay) return;
+    document.getElementById('col-name-input').value = '';
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('col-name-input').focus(), 50);
+};
+
+const closeCreateModal = () => {
+    const overlay = document.getElementById('col-modal-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+const handleCreateCollection = async () => {
+    const input = document.getElementById('col-name-input');
+    const name = input?.value.trim();
+    if (!name) { toast.error('Please enter a folder name.'); return; }
+
+    const btn = document.getElementById('col-modal-create');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+        await createCollection(name);
+        toast.success(`Folder "${name}" created!`);
+        closeCreateModal();
+        collectionsLoaded = false;
+        loadCollections();
+    } catch (err) {
+        toast.error(err.message || 'Failed to create collection.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create';
+    }
+};
+
+// ─── Delete Collection Modal ─────────────────────────────────────────────────
+let _pendingDeleteId = null;
+
+const openDeleteModal = (colId, colName) => {
+    _pendingDeleteId = colId;
+    const overlay = document.getElementById('col-delete-overlay');
+    const msg = document.getElementById('col-delete-msg');
+    if (msg) msg.textContent = `Permanently delete "${colName}" and remove all its saved prompts?`;
+    if (overlay) overlay.style.display = 'flex';
+};
+
+const closeDeleteModal = () => {
+    _pendingDeleteId = null;
+    const overlay = document.getElementById('col-delete-overlay');
+    if (overlay) overlay.style.display = 'none';
+};
+
+const handleDeleteCollection = async () => {
+    if (!_pendingDeleteId) return;
+    const btn = document.getElementById('col-delete-confirm');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+        await deleteCollection(_pendingDeleteId);
+        toast.success('Collection deleted.');
+        closeDeleteModal();
+        collectionsLoaded = false;
+        loadCollections();
+    } catch (err) {
+        toast.error(err.message || 'Failed to delete collection.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Delete';
+    }
+};
+
 // ─── Init ──────────────────────────────────────────────────
 const initUserDashboard = async () => {
     try {
@@ -290,6 +380,25 @@ const initUserDashboard = async () => {
 
         // Save user to window so tabs can access it
         window.currentUser = user;
+
+        // ── Collection modal wiring ──────────────────────────────────────
+        document.getElementById('new-collection-btn')?.addEventListener('click', openCreateModal);
+        document.getElementById('col-modal-cancel')?.addEventListener('click', closeCreateModal);
+        document.getElementById('col-modal-overlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeCreateModal();
+        });
+        document.getElementById('col-modal-create')?.addEventListener('click', handleCreateCollection);
+        document.getElementById('col-name-input')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleCreateCollection();
+            if (e.key === 'Escape') closeCreateModal();
+        });
+
+        // ── Delete modal wiring ──────────────────────────────────────────
+        document.getElementById('col-delete-cancel')?.addEventListener('click', closeDeleteModal);
+        document.getElementById('col-delete-overlay')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeDeleteModal();
+        });
+        document.getElementById('col-delete-confirm')?.addEventListener('click', handleDeleteCollection);
 
         loadCollections();
     } catch (err) {

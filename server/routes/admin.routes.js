@@ -40,6 +40,11 @@ router.put('/submissions/:id', asyncHandler(adminController.updateSubmissionStat
 // GET /api/admin/users
 router.get('/users', asyncHandler(adminController.getUsers));
 
+// --- Tools CRUD ---
+router.post('/tools',     asyncHandler(adminController.createTool));
+router.put('/tools/:id',    asyncHandler(adminController.updateTool));
+router.delete('/tools/:id', asyncHandler(adminController.deleteTool));
+
 // GET /api/admin/analytics
 router.get('/analytics', asyncHandler(adminController.getAnalytics));
 

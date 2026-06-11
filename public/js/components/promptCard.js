@@ -30,6 +30,14 @@ export const promptCardHTML = (p) => {
             </div>
             <div style="display:flex;align-items:center;gap:0.5rem;">
               <button
+                class="like-btn${p.isLiked ? ' active' : ''}"
+                data-like-prompt-id="${p.id}"
+                aria-label="Like prompt"
+                style="background:none;border:none;cursor:pointer;color:${p.isLiked ? '#ef4444' : 'var(--text-muted)'};display:flex;align-items:center;justify-content:center;padding:0.25rem;transition:color var(--transition);"
+              >
+                <svg width="15" height="15" fill="${p.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+              </button>
+              <button
                 class="copy-btn"
                 data-copy-prompt-id="${p.id}"
                 data-prompt-text="${clean(p.prompt_text ?? '')}"
@@ -43,38 +51,76 @@ export const promptCardHTML = (p) => {
       </article>`;
 };
 
-// ─── Copy Handlers ────────────────────────────────────────────────────────────
+// ─── Copy & Like Handlers ────────────────────────────────────────────────────────────
 export const attachCopyHandlers = (container) => {
     container.addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-copy-prompt-id]');
-        if (!btn) return;
+        const copyBtn = e.target.closest('[data-copy-prompt-id]');
+        if (copyBtn) {
+            if (!await isAuthenticated()) {
+                toast.error('Sign in to copy prompts.');
+                setTimeout(() => {
+                    window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`;
+                }, 1200);
+                return;
+            }
 
-        if (!await isAuthenticated()) {
-            toast.error('Sign in to copy prompts.');
-            setTimeout(() => {
-                window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`;
-            }, 1200);
+            const id   = copyBtn.dataset.copyPromptId;
+            const text = copyBtn.dataset.promptText;
+
+            if (!text) {
+                toast.error('Prompt text not available.');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                const original = copyBtn.innerHTML;
+                copyBtn.innerHTML = '✓';
+                copyBtn.style.color = '#4ade80';
+                setTimeout(() => { copyBtn.innerHTML = original; copyBtn.style.color = ''; }, 2000);
+                toast.success('Copied to clipboard!');
+                trackCopy(id);
+            } catch {
+                toast.error('Copy failed. Please try again.');
+            }
             return;
         }
 
-        const id   = btn.dataset.copyPromptId;
-        const text = btn.dataset.promptText;
+        const likeBtn = e.target.closest('[data-like-prompt-id]');
+        if (likeBtn) {
+            if (!await isAuthenticated()) {
+                toast.error('Sign in to like prompts.');
+                setTimeout(() => {
+                    window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`;
+                }, 1200);
+                return;
+            }
 
-        if (!text) {
-            toast.error('Prompt text not available.');
-            return;
-        }
+            const id = likeBtn.dataset.likePromptId;
+            const isLiked = likeBtn.classList.contains('active');
+            likeBtn.disabled = true;
 
-        try {
-            await navigator.clipboard.writeText(text);
-            const original = btn.innerHTML;
-            btn.innerHTML = '✓';
-            btn.style.color = '#4ade80';
-            setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 2000);
-            toast.success('Copied to clipboard!');
-            trackCopy(id);
-        } catch {
-            toast.error('Copy failed. Please try again.');
+            const { likePrompt, unlikePrompt } = await import('/js/api.js');
+
+            try {
+                if (isLiked) {
+                    await unlikePrompt(id);
+                    likeBtn.classList.remove('active');
+                    likeBtn.style.color = 'var(--text-muted)';
+                    likeBtn.querySelector('svg').setAttribute('fill', 'none');
+                    toast.success('Like removed.');
+                } else {
+                    await likePrompt(id);
+                    likeBtn.classList.add('active');
+                    likeBtn.style.color = '#ef4444';
+                    likeBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+                    toast.success('Prompt liked!');
+                }
+            } catch (err) {
+                toast.error(err.message || 'Action failed.');
+            } finally {
+                likeBtn.disabled = false;
+            }
         }
     });
 };
