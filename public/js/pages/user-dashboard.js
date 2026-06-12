@@ -1,5 +1,15 @@
 import { requireAuth, signOut } from '/js/auth.js';
-import { fetchUserSubmissions, updateUserProfile, uploadUserAvatar, fetchUserProfile } from '/js/api.js';
+import {
+    fetchUserSubmissions,
+    updateUserProfile,
+    uploadUserAvatar,
+    fetchUserProfile,
+    fetchCollections,
+    fetchCollectionPrompts,
+    toggleCollectionPrompt,
+    createCollection,
+    deleteCollection,
+} from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 import { toast } from '/js/core.js';
 
@@ -32,8 +42,6 @@ sidebarLinks.forEach(btn => {
 
 
 // ─── Collections ────────────────────────────────────────────────────────────────
-import { fetchCollections, fetchCollectionPrompts, toggleCollectionPrompt, createCollection, deleteCollection } from '/js/api.js';
-
 let collectionsLoaded = false;
 
 const loadCollections = async () => {

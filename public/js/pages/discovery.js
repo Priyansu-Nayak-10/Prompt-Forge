@@ -1,9 +1,4 @@
 import { fetchCategories, fetchTools } from '/js/api.js';
-import { renderNavbar } from '/js/components/navbar.js';
-import { renderFooter } from '/js/components/footer.js';
-
-renderNavbar();
-renderFooter();
 
 const init = async () => {
     const categoriesGrid = document.getElementById('categories-grid');
@@ -94,4 +89,8 @@ const init = async () => {
     }
 };
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+} else {
+    init();
+}

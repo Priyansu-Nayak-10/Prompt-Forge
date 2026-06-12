@@ -12,7 +12,7 @@ const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => 
         .eq('status', 'published');
 
     if (category) query = query.eq('category_id', category);
-    if (tool)     query = query.ilike('supported_tools', `%${tool}%`);
+    if (tool)     query = query.contains('supported_tools', [tool]);
     if (q)        query = query.ilike('search_vector', `%${q}%`);
 
     if (sort === 'trending') {

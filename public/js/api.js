@@ -24,6 +24,7 @@ export const fetchPrompts = async (params = {}) => {
     const query = new URLSearchParams();
     if (params.q)        query.set('q', params.q);
     if (params.category) query.set('category', params.category);
+    if (params.tool)     query.set('tool', params.tool);
     if (params.sort)     query.set('sort', params.sort);
     if (params.page)     query.set('page', String(params.page));
     if (params.limit)    query.set('limit', String(params.limit));

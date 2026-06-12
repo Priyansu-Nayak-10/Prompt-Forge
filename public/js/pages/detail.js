@@ -1,4 +1,16 @@
-import { fetchPromptBySlug, trackCopy, trackView, fetchSavedPromptIds, fetchLikedPromptIds, likePrompt, unlikePrompt } from '/js/api.js';
+import {
+    API_BASE_URL,
+    fetchPromptBySlug,
+    trackCopy,
+    trackView,
+    fetchSavedPromptIds,
+    fetchLikedPromptIds,
+    likePrompt,
+    unlikePrompt,
+    fetchCollections,
+    createCollection,
+    toggleCollectionPrompt,
+} from '/js/api.js';
 import { toast } from '/js/core.js';
 import { isAuthenticated } from '/js/auth.js';
 
@@ -76,7 +88,7 @@ if (authed) {
 const container = document.getElementById('prompt-content');
 if (container) {
     const catName = prompt.categories?.name || '';
-    const catSlug = prompt.categories?.slug || '';
+    const catId = prompt.categories?.id || '';
     const dateStr = new Date(prompt.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
     container.innerHTML = `
@@ -85,7 +97,7 @@ if (container) {
         <div>
           ${prompt.preview_image_url ? `<div class="detail-image" style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.75rem;max-height:360px;"><img src="${clean(prompt.preview_image_url)}" alt="${clean(prompt.title)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"></div>` : ''}
           <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.25rem;align-items:center;">
-            ${catName ? `<a href="/prompts.html?category=${catSlug}" class="chip">${clean(catName)}</a>` : ''}
+            ${catName && catId ? `<a href="/prompts.html?category=${encodeURIComponent(catId)}" class="chip">${clean(catName)}</a>` : ''}
             <span class="badge badge-${prompt.difficulty}">${clean(prompt.difficulty)}</span>
             ${prompt.is_trending ? '<span class="badge-trending">🔥 Trending</span>' : ''}
           </div>
@@ -217,8 +229,6 @@ document.getElementById('like-page-btn')?.addEventListener('click', async () => 
 });
 
 // ─── Collections Modal Handler ──────────────────────────────────────────────────
-import { fetchCollections, createCollection, toggleCollectionPrompt } from '/js/api.js';
-
 const saveBtn = document.getElementById('save-btn');
 const modal = document.getElementById('collection-modal');
 const colList = document.getElementById('collection-list');

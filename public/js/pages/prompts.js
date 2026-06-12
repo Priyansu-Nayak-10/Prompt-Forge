@@ -9,6 +9,7 @@ const pagEl      = document.getElementById('pagination');
 const searchInput = document.getElementById('search-input');
 const sortSelect  = document.getElementById('sort-select');
 const catFilters  = document.getElementById('category-filters');
+const resultsMeta = document.getElementById('results-meta');
 
 // ---- State ----
 let state = {
@@ -41,13 +42,33 @@ const pushURL = () => {
     history.replaceState({}, '', `${location.pathname}${p.size ? '?' + p : ''}`);
 };
 
+const updateResultsMeta = (metadata = {}) => {
+    if (!resultsMeta) return;
+
+    const total = metadata.total ?? 0;
+    const label = total === 1 ? 'prompt' : 'prompts';
+    const context = [];
+
+    if (state.q) context.push(`for "${state.q}"`);
+    if (state.category) {
+        const activeCategory = Array.from(catFilters.querySelectorAll('.chip'))
+            .find(btn => btn.dataset.category === state.category);
+        if (activeCategory) context.push(`in ${activeCategory.textContent.trim()}`);
+    }
+    if (state.tool) context.push(`using ${state.tool}`);
+
+    resultsMeta.textContent = `${total.toLocaleString()} ${label} found${context.length ? ` ${context.join(' ')}` : ''}`;
+};
+
 // ---- Load & render prompts ----
 const loadPrompts = async () => {
     showSkeletons(grid, state.limit);
     pagEl.innerHTML = '';
+    if (resultsMeta) resultsMeta.textContent = '';
 
     try {
         const res = await fetchPrompts(state);
+        updateResultsMeta(res.metadata);
 
         if (!res.data || res.data.length === 0) {
             showEmpty(grid, {
@@ -88,6 +109,7 @@ const loadPrompts = async () => {
 
         pushURL();
     } catch (err) {
+        if (resultsMeta) resultsMeta.textContent = '';
         showError(grid, err.message, loadPrompts);
     }
 };
