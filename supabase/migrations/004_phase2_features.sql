@@ -1,6 +1,7 @@
 -- 1. Full-Text Search View
 -- Creates a view that concatenates title, description, and tags for high-performance trigram search.
-CREATE OR REPLACE VIEW prompts_search_view AS
+CREATE OR REPLACE VIEW prompts_search_view
+WITH (security_invoker = true) AS
 SELECT *, 
   (COALESCE(title, '') || ' ' || COALESCE(description, '') || ' ' || COALESCE(immutable_array_to_string(tags, ' '), '')) AS search_vector
 FROM prompts;
