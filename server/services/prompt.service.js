@@ -1,36 +1,63 @@
 const { supabaseAdmin } = require('../config/supabase');
 const { generateUniqueSlug } = require('./slug.service');
 
+const PROMPT_SELECT_COLUMNS = 'id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id, is_trending';
+const PROMPT_SELECT_COLUMNS_NO_TRENDING = 'id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id';
 
-const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => {
+
+const buildPublishedPromptsQuery = ({ source, page, limit, q, category, sort, tool, includeTrending }) => {
     const start = (page - 1) * limit;
     const end   = start + limit - 1;
 
     let query = supabaseAdmin
-        .from(q ? 'prompts_search_view' : 'prompts')
-        .select('id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id, is_trending', { count: 'exact' })
+        .from(source)
+        .select(includeTrending ? PROMPT_SELECT_COLUMNS : PROMPT_SELECT_COLUMNS_NO_TRENDING, { count: 'exact' })
         .eq('status', 'published');
 
     if (category) query = query.eq('category_id', category);
     if (tool)     query = query.contains('supported_tools', [tool]);
     if (q)        query = query.ilike('search_vector', `%${q}%`);
 
-    if (sort === 'trending') {
+    if (sort === 'trending' && includeTrending) {
         query = query
             .order('is_trending', { ascending: false })
-            .order('view_count',  { ascending: false })
-            .order('created_at',  { ascending: false });
+            .order('view_count', { ascending: false })
+            .order('created_at', { ascending: false });
     } else {
         query = query.order('created_at', { ascending: false });
     }
 
-    const { data, count, error } = await query.range(start, end);
-    if (error) throw error;
+    return query.range(start, end);
+};
 
-    return {
-        data,
-        metadata: { total: count, page, limit, totalPages: Math.ceil((count || 0) / limit) },
-    };
+
+const getPublishedPrompts = async ({ page, limit, q, category, sort, tool }) => {
+    const source = q ? 'prompts_search_view' : 'prompts';
+
+    try {
+        const { data, count, error } = await buildPublishedPromptsQuery({ source, page, limit, q, category, sort, tool, includeTrending: true });
+        if (error) throw error;
+
+        return {
+            data,
+            metadata: { total: count, page, limit, totalPages: Math.ceil((count || 0) / limit) },
+        };
+    } catch (error) {
+        const fallbackNeeded = sort === 'trending' && (
+            error?.code === '42703' ||
+            /is_trending|search_vector|view_count/i.test(error?.message || '')
+        );
+
+        if (!fallbackNeeded) throw error;
+
+        const { data, count, error: fallbackError } = await buildPublishedPromptsQuery({ source, page, limit, q, category, sort: 'latest', tool, includeTrending: false });
+        if (fallbackError) throw fallbackError;
+
+        return {
+            data,
+            metadata: { total: count, page, limit, totalPages: Math.ceil((count || 0) / limit) },
+        };
+    }
 };
 
 
