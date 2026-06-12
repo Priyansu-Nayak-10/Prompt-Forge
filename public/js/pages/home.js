@@ -4,6 +4,63 @@ import { isAuthenticated } from '/js/auth.js';
 
 document.title = 'PromptForge — AI Prompt Discovery Platform';
 
+// \u2500\u2500\u2500 Cycling Search Placeholder \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+const SEARCH_PHRASES = [
+    'Search "cinematic portrait"...',
+    'Search "anime landscape"...',
+    'Search "product photography"...',
+    'Search "4K sci-fi environment"...',
+    'Search "watercolour illustration"...',
+    'Search "neon cyberpunk city"...',
+];
+
+const cycleSearchPlaceholder = (input) => {
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let erasing = false;
+    let paused = false;
+    let timer = null;
+
+    const ERASE_SPEED = 30;
+    const TYPE_SPEED  = 48;
+    const PAUSE_MS    = 2200;
+
+    const tick = () => {
+        if (paused) return;
+        const phrase = SEARCH_PHRASES[phraseIndex];
+
+        if (erasing) {
+            charIndex--;
+            input.placeholder = phrase.slice(0, charIndex);
+            if (charIndex === 0) {
+                erasing = false;
+                phraseIndex = (phraseIndex + 1) % SEARCH_PHRASES.length;
+                timer = setTimeout(tick, 300);
+                return;
+            }
+            timer = setTimeout(tick, ERASE_SPEED);
+        } else {
+            charIndex++;
+            input.placeholder = phrase.slice(0, charIndex);
+            if (charIndex === phrase.length) {
+                erasing = true;
+                timer = setTimeout(tick, PAUSE_MS);
+                return;
+            }
+            timer = setTimeout(tick, TYPE_SPEED);
+        }
+    };
+
+    input.addEventListener('focus', () => { paused = true; clearTimeout(timer); });
+    input.addEventListener('blur',  () => { paused = false; tick(); });
+
+    // small delay so page renders first
+    setTimeout(tick, 800);
+};
+
+const searchInput = document.querySelector('.search-input');
+if (searchInput) cycleSearchPlaceholder(searchInput);
+
 const grid = document.getElementById('trending-prompts-grid');
 if (!grid) throw new Error('No grid element');
 

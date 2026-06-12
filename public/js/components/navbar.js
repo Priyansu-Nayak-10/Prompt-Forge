@@ -214,6 +214,20 @@ export const renderNavbar = () => {
         });
     }
 
+    // ── Scroll aware navbar shrink ──
+    const navbar = container.querySelector('.navbar');
+    if (navbar) {
+        const handleScroll = () => {
+            if (window.scrollY > 80) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll();
+    }
+
     // ── Async auth UI (non-blocking) ──
     updateAuthUI(container).catch(() => {});
 };

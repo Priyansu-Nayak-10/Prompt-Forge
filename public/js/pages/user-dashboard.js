@@ -50,6 +50,10 @@ const loadCollections = async () => {
         const res = await fetchCollections();
         const collections = res.data || [];
 
+        const colCount = collections.length;
+        const colChip = document.getElementById('stat-collections');
+        if (colChip) colChip.innerHTML = `📁 <strong>${colCount}</strong> Collection${colCount === 1 ? '' : 's'}`;
+
         if (!collections.length) {
             container.innerHTML = `
               <div class="empty-state">
@@ -166,6 +170,10 @@ const loadSubmissions = async () => {
     try {
         const res = await fetchUserSubmissions();
         const subs = res.data || [];
+
+        const subsCount = subs.length;
+        const subsChip = document.getElementById('stat-submissions');
+        if (subsChip) subsChip.innerHTML = `📝 <strong>${subsCount}</strong> Submission${subsCount === 1 ? '' : 's'}`;
 
         if (!subs.length) {
             container.innerHTML = `
@@ -401,8 +409,34 @@ const initUserDashboard = async () => {
         document.getElementById('col-delete-confirm')?.addEventListener('click', handleDeleteCollection);
 
         loadCollections();
+        updateDashboardStats();
     } catch (err) {
         console.error('Failed to init user dashboard', err);
+    }
+};
+
+const updateDashboardStats = async () => {
+    try {
+        const { fetchLikedPromptIds, fetchCollections, fetchUserSubmissions } = await import('/js/api.js');
+        const [likesRes, collectionsRes, submissionsRes] = await Promise.all([
+            fetchLikedPromptIds().catch(() => ({ data: [] })),
+            fetchCollections().catch(() => ({ data: [] })),
+            fetchUserSubmissions().catch(() => ({ data: [] }))
+        ]);
+        
+        const likesCount = likesRes.data?.length || 0;
+        const likesChip = document.getElementById('stat-likes');
+        if (likesChip) likesChip.innerHTML = `❤️ <strong>${likesCount}</strong> Liked`;
+
+        const collectionsCount = collectionsRes.data?.length || 0;
+        const colChip = document.getElementById('stat-collections');
+        if (colChip) colChip.innerHTML = `📁 <strong>${collectionsCount}</strong> Collection${collectionsCount === 1 ? '' : 's'}`;
+
+        const subsCount = submissionsRes.data?.length || 0;
+        const subsChip = document.getElementById('stat-submissions');
+        if (subsChip) subsChip.innerHTML = `📝 <strong>${subsCount}</strong> Submission${subsCount === 1 ? '' : 's'}`;
+    } catch (err) {
+        console.error('Failed to load dashboard stats', err);
     }
 };
 

@@ -8,10 +8,19 @@ const clean = (str) => typeof DOMPurify !== 'undefined'
     : (str ?? '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // ─── Prompt Card HTML ─────────────────────────────────────────────────────────
+const TYPE_PILL = {
+    'text-to-image': '<span class="badge-type badge-type-image">🖼 Image</span>',
+    'text-to-text':  '<span class="badge-type badge-type-text">📝 Text</span>',
+    'text-to-video': '<span class="badge-type badge-type-video">🎬 Video</span>',
+};
+
 export const promptCardHTML = (p) => {
     const image = p.preview_image_url
         ? `<img src="${clean(p.preview_image_url)}" alt="${clean(p.title)}" loading="lazy">`
         : `<div class="card-image-placeholder">✨</div>`;
+
+    const typePill = TYPE_PILL[p.prompt_type] || '';
+    const likeCount = p.like_count ?? 0;
 
     return `
       <article class="prompt-card" data-id="${p.id}">
@@ -26,9 +35,10 @@ export const promptCardHTML = (p) => {
           <div class="card-footer">
             <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
               <span class="badge badge-${p.difficulty}">${clean(p.difficulty)}</span>
+              ${typePill}
               ${p.is_trending ? '<span class="badge-trending">🔥 Trending</span>' : ''}
             </div>
-            <div style="display:flex;align-items:center;gap:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.4rem;">
               <button
                 class="like-btn${p.isLiked ? ' active' : ''}"
                 data-like-prompt-id="${p.id}"
@@ -37,6 +47,7 @@ export const promptCardHTML = (p) => {
               >
                 <svg width="15" height="15" fill="${p.isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               </button>
+              <span class="like-count" data-like-count="${p.id}">${likeCount > 0 ? likeCount : ''}</span>
               <button
                 class="copy-btn"
                 data-copy-prompt-id="${p.id}"
@@ -102,18 +113,30 @@ export const attachCopyHandlers = (container) => {
 
             const { likePrompt, unlikePrompt } = await import('/js/api.js');
 
+            // find the sibling like-count span
+            const countEl = likeBtn.closest('[style]')?.querySelector(`[data-like-count="${id}"]`)
+                         ?? likeBtn.parentElement?.querySelector(`[data-like-count="${id}"]`);
+
             try {
                 if (isLiked) {
                     await unlikePrompt(id);
                     likeBtn.classList.remove('active');
                     likeBtn.style.color = 'var(--text-muted)';
                     likeBtn.querySelector('svg').setAttribute('fill', 'none');
+                    if (countEl) {
+                        const n = Math.max(0, (parseInt(countEl.textContent) || 0) - 1);
+                        countEl.textContent = n > 0 ? n : '';
+                    }
                     toast.success('Like removed.');
                 } else {
                     await likePrompt(id);
                     likeBtn.classList.add('active');
                     likeBtn.style.color = '#ef4444';
                     likeBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+                    if (countEl) {
+                        const n = (parseInt(countEl.textContent) || 0) + 1;
+                        countEl.textContent = n;
+                    }
                     toast.success('Prompt liked!');
                 }
             } catch (err) {

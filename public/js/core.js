@@ -25,6 +25,7 @@ const showToast = (message, type = 'info', duration = 3500) => {
     const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
 
     el.style.cssText = `
+        position:relative;
         display:flex;align-items:center;gap:0.75rem;
         padding:0.8rem 1.125rem;
         background:${isDark ? 'rgba(17,17,38,0.95)' : 'rgba(255,255,255,0.98)'};
@@ -40,11 +41,19 @@ const showToast = (message, type = 'info', duration = 3500) => {
         transition:opacity 0.22s ease,transform 0.22s ease;
         font-family:'Inter',sans-serif;
         max-width:320px;min-width:200px;
+        overflow:hidden;
     `;
-    el.innerHTML = `<span style="color:${text};font-size:1rem;flex-shrink:0;">${icon}</span><span>${message}</span>`;
+    el.innerHTML = `<span style="color:${text};font-size:1rem;flex-shrink:0;">${icon}</span><span>${message}</span><div class="toast-progress" style="background:${text}; width:100%; transition: width ${duration}ms linear;"></div>`;
     c.appendChild(el);
 
     requestAnimationFrame(() => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; });
+    
+    // Drain progress bar
+    setTimeout(() => {
+        const progressEl = el.querySelector('.toast-progress');
+        if (progressEl) progressEl.style.width = '0%';
+    }, 10);
+
     setTimeout(() => {
         el.style.opacity = '0'; el.style.transform = 'translateX(12px)';
         el.addEventListener('transitionend', () => el.remove(), { once: true });

@@ -137,8 +137,21 @@ body {
   background: var(--nav-bg);
   backdrop-filter: blur(24px) saturate(1.8);
   border-bottom: 1px solid var(--border);
-  transition: background var(--transition-slow), border-color var(--transition-slow);
+  transition: height 0.25s ease, background var(--transition-slow), border-color var(--transition-slow), backdrop-filter 0.25s ease;
   box-shadow: 0 1px 0 var(--border), 0 4px 24px var(--shadow);
+}
+.navbar.scrolled {
+  height: 52px;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(32px) saturate(2.2);
+  border-bottom-color: rgba(255,255,255,0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 8px 32px rgba(0,0,0,0.6);
+}
+[data-theme="light"] .navbar.scrolled {
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(32px) saturate(2);
+  border-bottom-color: rgba(0,0,0,0.1);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.07), 0 4px 20px rgba(0,0,0,0.06);
 }
 [data-theme="light"] .navbar {
   box-shadow: 0 1px 0 var(--border), 0 4px 20px rgba(0,0,0,0.05);
@@ -251,9 +264,18 @@ body {
   color: var(--text);
 }
 .gradient-text {
-  background: linear-gradient(180deg, var(--text) 0%, var(--text-muted) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 30%, #a78bfa 55%, #c084fc 75%, #ffffff 100%);
+  background-size: 200% auto;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: gradient-shift 5s linear infinite;
 }
+[data-theme="light"] .gradient-text {
+  background: linear-gradient(135deg, #0f172a 0%, #7c3aed 40%, #a855f7 65%, #0f172a 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: gradient-shift 5s linear infinite;
+}
+@keyframes gradient-shift { to { background-position: 200% center; } }
 .hero p { font-size: 1.0625rem; color: var(--text-muted); max-width: 540px; margin: 0 auto var(--sp-8); line-height: 1.75; }
 
 
@@ -297,7 +319,15 @@ body {
   transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
   box-shadow: var(--shadow-card);
 }
-.prompt-card:hover { border-color: var(--border-hover); transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.prompt-card:hover {
+  border-color: rgba(139,92,246,0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.15), 0 24px 56px rgba(0,0,0,0.75), 0 0 48px rgba(139,92,246,0.07);
+}
+[data-theme="light"] .prompt-card:hover {
+  border-color: rgba(139,92,246,0.35);
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.12), 0 12px 32px rgba(0,0,0,0.12), 0 0 24px rgba(139,92,246,0.06);
+}
 .card-image { height: 192px; overflow: hidden; background: var(--bg-3); flex-shrink: 0; }
 .card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s cubic-bezier(0.4,0,0.2,1); }
 .prompt-card:hover .card-image img { transform: scale(1.06); }
@@ -315,6 +345,23 @@ body {
   overflow: hidden; 
 }
 .card-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: var(--sp-3); border-top: 1px solid var(--border); }
+
+/* ─── Prompt Type Pills ─────────────────────────────────────────────────── */
+.badge-type {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.18rem 0.55rem; border-radius: 99px;
+  font-size: 0.67rem; font-weight: 600; letter-spacing: 0.02em;
+}
+.badge-type-image { background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2); }
+.badge-type-text  { background: rgba(34,197,94,0.1);  color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+.badge-type-video { background: rgba(251,146,60,0.1); color: #fb923c; border: 1px solid rgba(251,146,60,0.2); }
+[data-theme="light"] .badge-type-image { background: rgba(59,130,246,0.08); color: #2563eb; border-color: rgba(59,130,246,0.2); }
+[data-theme="light"] .badge-type-text  { background: rgba(34,197,94,0.08);  color: #16a34a; border-color: rgba(34,197,94,0.2); }
+[data-theme="light"] .badge-type-video { background: rgba(251,146,60,0.08); color: #ea580c; border-color: rgba(251,146,60,0.2); }
+
+/* ─── Like count chip ──────────────────────────────────────────────────── */
+.like-count { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; min-width: 14px; line-height: 1; transition: color var(--transition); }
+.like-btn.active + .like-count { color: #ef4444; }
 
 
 .badge { display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; border-radius: 99px; font-size: 0.7rem; font-weight: 600; text-transform: capitalize; letter-spacing: 0.03em; }
@@ -343,7 +390,11 @@ body {
   color-scheme: inherit;
   transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
 }
-.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: var(--card); }
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 0 4px var(--accent-glow);
+  background: var(--card);
+}
 .input::placeholder { color: var(--text-subtle); opacity: 1; }
 textarea.input {
   resize: vertical; min-height: 100px;
@@ -661,6 +712,27 @@ select.input option {
 
 
 .img-preview { height: 80px; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); object-fit: cover; }
+
+/* ─── Dashboard Stats Bar ───────────────────────────────────────────────── */
+.stat-chip {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border-radius: 99px;
+  background: var(--card); border: 1px solid var(--border);
+  font-size: 0.8125rem; font-weight: 500; color: var(--text-muted);
+  transition: border-color var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.stat-chip:hover { border-color: var(--border-hover); color: var(--text); }
+.stat-chip strong { color: var(--text); font-weight: 700; }
+
+/* ─── Toast Progress Bar ────────────────────────────────────────────────── */
+.toast-progress {
+  position: absolute; bottom: 0; left: 0;
+  height: 3px; width: 100%;
+  border-radius: 0 0 0.75rem 0.75rem;
+  transition: width linear;
+  opacity: 0.7;
+}
 
 
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-4); margin-bottom: var(--sp-6); }
