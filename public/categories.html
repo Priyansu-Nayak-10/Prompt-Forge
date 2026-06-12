@@ -11,7 +11,7 @@
     /* ─── Category Cards ────────────────────────────────────────────────── */
     .cat-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
     }
     .cat-card {
@@ -65,6 +65,14 @@
       display: flex; align-items: center; gap: 0.25rem;
     }
     .cat-card:hover .cat-arrow { opacity: 1; transform: translateX(0); }
+
+    @media (max-width: 900px) {
+      .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .cat-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
