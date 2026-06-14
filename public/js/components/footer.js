@@ -7,7 +7,7 @@ const footerHtml = `
       </a>
       <div style="display:flex;gap:1.5rem;">
         <a href="/prompts.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;">Prompts</a>
-        <a href="/categories.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;">Categories</a>
+        <a href="/tools.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;">Image Tools</a>
         <a href="/submit.html" style="color:var(--text-muted);text-decoration:none;font-size:0.8125rem;">Submit</a>
       </div>
       <span>© 2026 PromptForge. All rights reserved.</span>

@@ -1,8 +1,9 @@
 const { supabaseAdmin } = require('../config/supabase');
 const { generateUniqueSlug } = require('./slug.service');
+const { IMAGE_PROMPT_TYPE, IMAGE_TOOL_NAMES } = require('../constants/imagePlatform');
 
-const PROMPT_SELECT_COLUMNS = 'id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id, is_trending';
-const PROMPT_SELECT_COLUMNS_NO_TRENDING = 'id, title, slug, description, preview_image_url, tags, difficulty, view_count, copy_count, created_at, category_id';
+const PROMPT_SELECT_COLUMNS = 'id, title, slug, description, preview_image_url, tags, difficulty, prompt_type, view_count, copy_count, created_at, category_id, is_trending';
+const PROMPT_SELECT_COLUMNS_NO_TRENDING = 'id, title, slug, description, preview_image_url, tags, difficulty, prompt_type, view_count, copy_count, created_at, category_id';
 
 
 const buildPublishedPromptsQuery = ({ source, page, limit, q, category, sort, tool, includeTrending }) => {
@@ -12,10 +13,12 @@ const buildPublishedPromptsQuery = ({ source, page, limit, q, category, sort, to
     let query = supabaseAdmin
         .from(source)
         .select(includeTrending ? PROMPT_SELECT_COLUMNS : PROMPT_SELECT_COLUMNS_NO_TRENDING, { count: 'exact' })
-        .eq('status', 'published');
+        .eq('status', 'published')
+        .eq('prompt_type', IMAGE_PROMPT_TYPE);
 
     if (category) query = query.eq('category_id', category);
-    if (tool)     query = query.contains('supported_tools', [tool]);
+    if (tool && IMAGE_TOOL_NAMES.includes(tool)) query = query.contains('supported_tools', [tool]);
+    if (tool && !IMAGE_TOOL_NAMES.includes(tool)) query = query.eq('id', '00000000-0000-0000-0000-000000000000');
     if (q)        query = query.ilike('search_vector', `%${q}%`);
 
     if (sort === 'trending' && includeTrending) {
@@ -67,6 +70,7 @@ const getPromptBySlug = async (slug) => {
         .select('*, categories ( id, name, slug )')
         .eq('slug', slug)
         .eq('status', 'published')
+        .eq('prompt_type', IMAGE_PROMPT_TYPE)
         .maybeSingle();
 
     if (error) throw error;
@@ -106,6 +110,7 @@ const incrementViewCount = async (id) => {
 
 const createPrompt = async (promptData) => {
     const slug = await generateUniqueSlug(promptData.title);
+    promptData.prompt_type = IMAGE_PROMPT_TYPE;
     const { data, error } = await supabaseAdmin
         .from('prompts').insert([{ ...promptData, slug }]).select().single();
     if (error) throw error;
@@ -114,6 +119,7 @@ const createPrompt = async (promptData) => {
 
 
 const updatePrompt = async (id, promptData) => {
+    if (promptData.prompt_type) promptData.prompt_type = IMAGE_PROMPT_TYPE;
     const { data, error } = await supabaseAdmin
         .from('prompts').update(promptData).eq('id', id).select().single();
     if (error) throw error;

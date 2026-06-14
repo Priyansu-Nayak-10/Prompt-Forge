@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
 Allow: /prompts.html
-Allow: /categories.html
 Allow: /tools.html
 Allow: /prompt-detail.html
 

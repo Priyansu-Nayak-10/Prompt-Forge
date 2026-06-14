@@ -1,43 +1,41 @@
-import { fetchPrompts, fetchCategories, fetchSavedPromptIds, fetchLikedPromptIds } from '/js/api.js';
+import { fetchPrompts, fetchCategories, fetchTools, fetchSavedPromptIds, fetchLikedPromptIds } from '/js/api.js';
 import { promptCardHTML, attachCopyHandlers } from '/js/components/promptCard.js';
 import { isAuthenticated } from '/js/auth.js';
 import { renderPagination } from '/js/components/pagination.js';
 import { showSkeletons, showEmpty, showError } from '/js/core.js';
 
-const grid       = document.getElementById('prompts-grid');
-const pagEl      = document.getElementById('pagination');
+const grid = document.getElementById('prompts-grid');
+const pagEl = document.getElementById('pagination');
 const searchInput = document.getElementById('search-input');
-const sortSelect  = document.getElementById('sort-select');
-const catFilters  = document.getElementById('category-filters');
+const sortSelect = document.getElementById('sort-select');
+const catFilters = document.getElementById('category-filters');
+const toolFilters = document.getElementById('tool-filters');
 const resultsMeta = document.getElementById('results-meta');
 
-// ---- State ----
 let state = {
-    q:        '',
-    sort:     'latest',
+    q: '',
+    sort: 'latest',
     category: '',
-    tool:     '',
-    page:     1,
-    limit:    16,
+    tool: '',
+    page: 1,
+    limit: 16,
 };
 
-// ---- Read URL params on load ----
 const initFromURL = () => {
     const p = new URLSearchParams(window.location.search);
-    if (p.get('q'))        { state.q = p.get('q'); searchInput.value = state.q; }
-    if (p.get('sort'))     { state.sort = p.get('sort'); sortSelect.value = state.sort; }
-    if (p.get('category')) { state.category = p.get('category'); }
-    if (p.get('tool'))     { state.tool = p.get('tool'); }
-    if (p.get('page'))     { state.page = parseInt(p.get('page')) || 1; }
+    if (p.get('q')) { state.q = p.get('q'); searchInput.value = state.q; }
+    if (p.get('sort')) { state.sort = p.get('sort'); sortSelect.value = state.sort; }
+    if (p.get('category')) state.category = p.get('category');
+    if (p.get('tool')) state.tool = p.get('tool');
+    if (p.get('page')) state.page = parseInt(p.get('page')) || 1;
 };
 
-// ---- Push state to URL (for back/share) ----
 const pushURL = () => {
     const p = new URLSearchParams();
-    if (state.q)        p.set('q', state.q);
+    if (state.q) p.set('q', state.q);
     if (state.sort !== 'latest') p.set('sort', state.sort);
     if (state.category) p.set('category', state.category);
-    if (state.tool)     p.set('tool', state.tool);
+    if (state.tool) p.set('tool', state.tool);
     if (state.page > 1) p.set('page', String(state.page));
     history.replaceState({}, '', `${location.pathname}${p.size ? '?' + p : ''}`);
 };
@@ -46,7 +44,7 @@ const updateResultsMeta = (metadata = {}) => {
     if (!resultsMeta) return;
 
     const total = metadata.total ?? 0;
-    const label = total === 1 ? 'prompt' : 'prompts';
+    const label = total === 1 ? 'image prompt' : 'image prompts';
     const context = [];
 
     if (state.q) context.push(`for "${state.q}"`);
@@ -60,7 +58,6 @@ const updateResultsMeta = (metadata = {}) => {
     resultsMeta.textContent = `${total.toLocaleString()} ${label} found${context.length ? ` ${context.join(' ')}` : ''}`;
 };
 
-// ---- Load & render prompts ----
 const loadPrompts = async () => {
     showSkeletons(grid, state.limit);
     pagEl.innerHTML = '';
@@ -72,9 +69,9 @@ const loadPrompts = async () => {
 
         if (!res.data || res.data.length === 0) {
             showEmpty(grid, {
-                icon: '🔍',
-                title: 'No prompts found',
-                message: state.q ? `No results for "${state.q}". Try a different keyword.` : 'No prompts available yet.',
+                icon: 'IMG',
+                title: 'No image prompts found',
+                message: state.q ? `No image prompts matched "${state.q}". Try another visual style, subject, or tool.` : 'No image prompts available yet.',
             });
             return;
         }
@@ -114,7 +111,6 @@ const loadPrompts = async () => {
     }
 };
 
-// ---- Load categories into filter chips ----
 const loadCategories = async () => {
     try {
         const res = await fetchCategories();
@@ -128,10 +124,29 @@ const loadCategories = async () => {
             catFilters.appendChild(btn);
         });
 
-        // Mark active chip from URL state
         updateCategoryChips();
     } catch {
-        // Non-fatal — categories just won't be filterable
+        // Non-fatal: categories just will not be filterable.
+    }
+};
+
+const loadTools = async () => {
+    if (!toolFilters) return;
+    try {
+        const res = await fetchTools();
+        if (!res?.data) return;
+
+        res.data.forEach(tool => {
+            const btn = document.createElement('button');
+            btn.className = `chip${state.tool === tool.name ? ' active' : ''}`;
+            btn.dataset.tool = tool.name;
+            btn.textContent = tool.name;
+            toolFilters.appendChild(btn);
+        });
+
+        updateToolChips();
+    } catch {
+        // Non-fatal: tools just will not be filterable.
     }
 };
 
@@ -141,7 +156,13 @@ const updateCategoryChips = () => {
     });
 };
 
-// ---- Events ----
+const updateToolChips = () => {
+    if (!toolFilters) return;
+    toolFilters.querySelectorAll('.chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tool === state.tool);
+    });
+};
+
 catFilters.addEventListener('click', (e) => {
     const btn = e.target.closest('.chip');
     if (!btn) return;
@@ -151,11 +172,20 @@ catFilters.addEventListener('click', (e) => {
     loadPrompts();
 });
 
+toolFilters?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    state.tool = btn.dataset.tool;
+    state.page = 1;
+    updateToolChips();
+    loadPrompts();
+});
+
 let searchTimer;
 searchInput.addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
-        state.q    = searchInput.value.trim();
+        state.q = searchInput.value.trim();
         state.page = 1;
         loadPrompts();
     }, 350);
@@ -167,8 +197,8 @@ sortSelect.addEventListener('change', () => {
     loadPrompts();
 });
 
-// ---- Init ----
-document.title = 'Explore AI Prompts — PromptForge';
+document.title = 'Explore Image Prompts - PromptForge';
 initFromURL();
 loadCategories();
+loadTools();
 loadPrompts();

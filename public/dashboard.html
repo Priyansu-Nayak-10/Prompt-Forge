@@ -347,8 +347,8 @@
           <input id="form-description" type="text" class="input" placeholder="Short description for users...">
         </div>
         <div class="field col-span-2">
-          <label class="label">Prompt Text *</label>
-          <textarea id="form-prompt-text" class="input" rows="5" placeholder="Write the full prompt here..." required></textarea>
+          <label class="label">Image Prompt *</label>
+          <textarea id="form-prompt-text" class="input" rows="5" placeholder="Write the full image-generation prompt here..." required></textarea>
         </div>
         <div class="field col-span-2">
           <label class="label">Negative Prompt</label>
@@ -366,8 +366,6 @@
           <label class="label">Type</label>
           <select id="form-type" class="input">
             <option value="text-to-image">Text to Image</option>
-            <option value="text-to-text">Text to Text</option>
-            <option value="text-to-video">Text to Video</option>
           </select>
         </div>
         <div class="field">
@@ -382,7 +380,7 @@
           <input id="form-tags" type="text" class="input" placeholder="portrait, cinematic, 4k">
         </div>
         <div class="field col-span-2">
-          <label class="label">Thumbnail</label>
+          <label class="label">Sample Output Image</label>
           <div style="display:flex;gap:0.75rem;align-items:center;">
             <input id="form-image-url" type="text" class="input" placeholder="https://... or upload below" style="flex:1;">
             <input id="form-image-file" type="file" accept="image/*" style="display:none;">

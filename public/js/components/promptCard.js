@@ -15,11 +15,7 @@ const escapeAttr = (str) => String(str ?? '')
     .replace(/>/g, '&gt;');
 
 // ─── Prompt Card HTML ─────────────────────────────────────────────────────────
-const TYPE_PILL = {
-    'text-to-image': '<span class="badge-type badge-type-image">🖼 Image</span>',
-    'text-to-text':  '<span class="badge-type badge-type-text">📝 Text</span>',
-    'text-to-video': '<span class="badge-type badge-type-video">🎬 Video</span>',
-};
+const TYPE_PILL = '<span class="badge-type badge-type-image">Image</span>';
 
 export const promptCardHTML = (p) => {
     const id = escapeAttr(p.id);
@@ -30,7 +26,6 @@ export const promptCardHTML = (p) => {
         ? `<img src="${escapeAttr(p.preview_image_url)}" alt="${titleAttr}" loading="lazy">`
         : `<div class="card-image-placeholder">✨</div>`;
 
-    const typePill = TYPE_PILL[p.prompt_type] || '';
     const likeCount = p.like_count ?? 0;
 
     return `
@@ -46,7 +41,7 @@ export const promptCardHTML = (p) => {
           <div class="card-footer">
             <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
               <span class="badge badge-${difficultyClass}">${clean(p.difficulty)}</span>
-              ${typePill}
+              ${TYPE_PILL}
               ${p.is_trending ? '<span class="badge-trending">🔥 Trending</span>' : ''}
             </div>
             <div style="display:flex;align-items:center;gap:0.4rem;">

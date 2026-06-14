@@ -150,7 +150,7 @@ const openEdit = (prompt) => {
     fPrompt.value      = prompt.prompt_text || '';
     fNeg.value         = prompt.negative_prompt || '';
     fDiff.value        = prompt.difficulty || 'intermediate';
-    fType.value        = prompt.prompt_type || 'text-to-image';
+    fType.value        = 'text-to-image';
     fStatus.value      = prompt.status || 'published';
     fTags.value        = (prompt.tags || []).join(', ');
     fImageUrl.value    = prompt.preview_image_url || '';
@@ -224,7 +224,7 @@ form.addEventListener('submit', async (e) => {
         prompt_text:      pText,
         negative_prompt:  fNeg.value.trim() || undefined,
         difficulty:       fDiff.value,
-        prompt_type:      fType.value,
+        prompt_type:      'text-to-image',
         status:           fStatus.value,
         tags:             fTags.value ? fTags.value.split(',').map(t => t.trim()).filter(Boolean) : [],
         preview_image_url: fImageUrl.value.trim() || undefined,

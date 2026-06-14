@@ -4,99 +4,26 @@
   <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pf-theme")||"dark");</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Categories — PromptForge</title>
-  <meta name="description" content="Browse AI prompts by category — portrait, landscape, fantasy, product photography and more.">
+  <meta http-equiv="refresh" content="0;url=/prompts.html">
+  <title>Image Prompt Categories - PromptForge</title>
+  <meta name="description" content="Image prompt categories now live inside the Prompts page filters.">
   <link rel="stylesheet" href="/css/global.css?v=2.0">
-  <style>
-    /* ─── Category Cards ────────────────────────────────────────────────── */
-    .cat-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1rem;
-    }
-    .cat-card {
-      display: flex;
-      flex-direction: column;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.625rem 1.5rem;
-      text-decoration: none;
-      color: inherit;
-      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition), background var(--transition);
-      position: relative;
-      overflow: hidden;
-      gap: 0.25rem;
-    }
-    .cat-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
-      background: linear-gradient(90deg, var(--accent), #a855f7);
-      opacity: 0; transition: opacity var(--transition);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    }
-    .cat-card:hover {
-      border-color: rgba(124,77,255,0.3);
-      transform: translateY(-3px);
-      box-shadow: 0 0 0 1px rgba(124,77,255,0.15), 0 16px 40px rgba(0,0,0,0.5);
-      background: var(--card-hover);
-    }
-    .cat-card:hover::before { opacity: 1; }
-    .cat-icon-wrap {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: var(--accent-subtle);
-      border: 1px solid rgba(124,77,255,0.18);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem;
-      margin-bottom: 0.875rem;
-      transition: background var(--transition), box-shadow var(--transition);
-    }
-    .cat-card:hover .cat-icon-wrap {
-      background: rgba(124,77,255,0.14);
-      box-shadow: 0 0 16px var(--accent-glow);
-    }
-    .cat-name { font-size: 0.9375rem; font-weight: 700; color: var(--text); line-height: 1.3; }
-    .cat-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
-    .cat-arrow {
-      margin-top: 1rem; font-size: 0.75rem; font-weight: 600;
-      color: var(--accent-2); opacity: 0;
-      transform: translateX(-4px);
-      transition: opacity var(--transition), transform var(--transition);
-      display: flex; align-items: center; gap: 0.25rem;
-    }
-    .cat-card:hover .cat-arrow { opacity: 1; transform: translateX(0); }
-
-    @media (max-width: 900px) {
-      .cat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 520px) {
-      .cat-grid { grid-template-columns: 1fr; }
-    }
-  </style>
 </head>
 <body>
 <div class="page-wrap">
   <div id="navbar-container"></div>
-
   <div class="page-content">
     <div class="container">
-
-      <!-- Hero -->
       <div class="page-hero">
-        <div class="page-hero-eyebrow">📂 Browse Categories</div>
-        <h1>Find Your Creative Style</h1>
-        <p>Every great AI prompt starts with a category. Pick one and explore hundreds of curated prompts.</p>
+        <div class="page-hero-eyebrow">Image Prompt Categories</div>
+        <h1>Categories now live inside Prompts</h1>
+        <p>Use the category filters on the Prompts page to browse image-generation prompts without duplicate navigation.</p>
+        <p style="margin-top:1rem;"><a class="btn btn-primary" href="/prompts.html">Browse Image Prompts</a></p>
       </div>
-
-      <!-- Grid -->
-      <div class="cat-grid" id="categories-grid"></div>
     </div>
   </div>
-
   <div id="footer-container"></div>
 </div>
-<script type="module" src="/js/pages/discovery.js"></script>
 <script type="module" src="/js/theme.js"></script>
 </body>
 </html>

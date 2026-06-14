@@ -1,11 +1,13 @@
 const { supabaseAdmin } = require('../config/supabase');
+const slugify = require('slugify');
+const { IMAGE_PROMPT_TYPE, IMAGE_TOOL_NAMES } = require('../constants/imagePlatform');
 
 const getSavedPromptIds = async (req, res) => {
     const userId = req.user.id;
     // Find all prompt IDs the user has in ANY collection
     const { data, error } = await supabaseAdmin
         .from('collections')
-        .select('collection_prompts(prompt_id)')
+        .select('collection_prompts(prompt_id, prompts!inner(prompt_type))')
         .eq('user_id', userId);
         
     if (error) throw error;
@@ -13,7 +15,9 @@ const getSavedPromptIds = async (req, res) => {
     // Flatten the array of arrays
     const ids = new Set();
     data.forEach(col => {
-        col.collection_prompts.forEach(p => ids.add(p.prompt_id));
+        col.collection_prompts.forEach(p => {
+            if (p.prompts?.prompt_type === 'text-to-image') ids.add(p.prompt_id);
+        });
     });
     
     res.status(200).json({ success: true, data: Array.from(ids) });
@@ -97,13 +101,57 @@ const getSubmissions = async (req, res) => {
     });
 };
 
+const IMAGE_SIGNATURES = [
+    { bytes: [0xFF, 0xD8, 0xFF] },
+    { bytes: [0x89, 0x50, 0x4E, 0x47] },
+    { bytes: [0x47, 0x49, 0x46, 0x38] },
+    { bytes: [0x52, 0x49, 0x46, 0x46] },
+];
+
+const isImageBuffer = (buffer) => IMAGE_SIGNATURES.some(sig => sig.bytes.every((byte, i) => buffer[i] === byte));
+
+const uploadSubmissionImage = async (req, res) => {
+    if (!req.file) return res.status(400).json({ success: false, error: 'No image uploaded.' });
+    if (!req.file.mimetype.startsWith('image/') || !isImageBuffer(req.file.buffer)) {
+        return res.status(400).json({ success: false, error: 'Upload a valid image file.' });
+    }
+
+    const fileExt = req.file.originalname.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const baseName = req.file.originalname.replace(`.${fileExt}`, '');
+    const cleanSlug = slugify(baseName, { lower: true, strict: true }) || 'sample-output';
+    const fileName = `submissions/${req.user.id}/${cleanSlug}-${Date.now()}.${fileExt}`;
+
+    const { error } = await supabaseAdmin.storage
+        .from('prompt-images')
+        .upload(fileName, req.file.buffer, {
+            contentType: req.file.mimetype,
+            upsert: false
+        });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabaseAdmin.storage
+        .from('prompt-images')
+        .getPublicUrl(fileName);
+
+    res.status(200).json({ success: true, url: publicUrl });
+};
+
 const submitPrompt = async (req, res) => {
     const userId = req.user.id;
-    const { title, prompt_text, description, difficulty, prompt_type, tags, category_id, supported_tools } = req.body;
+    const { title, prompt_text, description, difficulty, tags, category_id, supported_tools, preview_image_url } = req.body;
 
     if (!title || !prompt_text) {
         return res.status(400).json({ success: false, error: 'Title and prompt text are required.' });
     }
+
+    if (!preview_image_url) {
+        return res.status(400).json({ success: false, error: 'Sample output image is required.' });
+    }
+
+    const tools = Array.isArray(supported_tools)
+        ? supported_tools.filter(tool => IMAGE_TOOL_NAMES.includes(tool))
+        : [];
 
     const { data, error } = await supabaseAdmin
         .from('submissions')
@@ -112,10 +160,11 @@ const submitPrompt = async (req, res) => {
             prompt_text,
             description,
             difficulty: difficulty || 'intermediate',
-            prompt_type: prompt_type || 'text-to-image',
+            prompt_type: IMAGE_PROMPT_TYPE,
             tags: Array.isArray(tags) ? tags : [],
             category_id,
-            supported_tools: Array.isArray(supported_tools) ? supported_tools : [],
+            supported_tools: tools,
+            preview_image_url,
             status: 'pending',
             user_id: userId
         }])
@@ -207,5 +256,6 @@ module.exports = {
     getSubmissions,
     submitPrompt,
     updateProfile,
-    uploadAvatar
+    uploadAvatar,
+    uploadSubmissionImage
 };

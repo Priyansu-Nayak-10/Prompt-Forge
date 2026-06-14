@@ -111,12 +111,13 @@ app.get('/api/config', (req, res) => {
 // Public Stats
 const { supabaseAdmin } = require('./config/supabase');
 const asyncHandler = require('./utils/asyncHandler');
+const { IMAGE_PROMPT_TYPE, IMAGE_CATEGORY_SLUGS } = require('./constants/imagePlatform');
 
 app.get('/api/stats', asyncHandler(async (req, res) => {
     const [promptsRes, usersRes, catsRes] = await Promise.all([
-        supabaseAdmin.from('prompts').select('id', { count: 'exact', head: true }).eq('status', 'published'),
+        supabaseAdmin.from('prompts').select('id', { count: 'exact', head: true }).eq('status', 'published').eq('prompt_type', IMAGE_PROMPT_TYPE),
         supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
-        supabaseAdmin.from('categories').select('id', { count: 'exact', head: true }),
+        supabaseAdmin.from('categories').select('id', { count: 'exact', head: true }).in('slug', IMAGE_CATEGORY_SLUGS),
     ]);
     res.setHeader('Cache-Control', 'public, max-age=120'); // 2-min cache
     res.json({

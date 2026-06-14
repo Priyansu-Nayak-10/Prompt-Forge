@@ -135,9 +135,6 @@ if (container) {
               <svg width="16" height="16" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
               <span>${isLiked ? 'Liked' : 'Like Prompt'}</span>
             </button>
-            <button id="tip-btn" class="btn btn-secondary" style="width:100%;gap:0.5rem;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;">
-              ☕ Tip Creator ($5)
-            </button>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;">
               <div style="text-align:center;padding:0.75rem 0.25rem;background:var(--bg-2);border-radius:var(--radius-sm);">
                 <div style="font-size:1.1rem;font-weight:800;">${(prompt.view_count || 0).toLocaleString()}</div>
@@ -154,7 +151,7 @@ if (container) {
             </div>
             <div style="font-size:0.78rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:0.875rem;">
               <div style="margin-bottom:0.4rem;">📅 ${dateStr}</div>
-              ${prompt.type ? `<div>🏷️ ${clean(prompt.type)}</div>` : ''}
+              <div>Image prompt</div>
             </div>
           </div>
         </aside>
@@ -324,48 +321,6 @@ createColBtn?.addEventListener('click', async () => {
     } finally {
         createColBtn.disabled = false;
         createColBtn.textContent = 'Create';
-    }
-});
-
-// ─── Tip Creator Handler ──────────────────────────────────────────────────────
-document.getElementById('tip-btn')?.addEventListener('click', async () => {
-    if (!await isAuthenticated()) {
-        toast.error('Sign in to tip the creator.');
-        setTimeout(() => { window.location.href = `/login.html?next=${encodeURIComponent(window.location.href)}`; }, 1200);
-        return;
-    }
-    
-    try {
-        const btn = document.getElementById('tip-btn');
-        btn.disabled = true;
-        btn.textContent = 'Redirecting...';
-        
-        const token = localStorage.getItem('sb_access_token');
-        const res = await fetch(`${API_BASE_URL}/checkout/create-session`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ 
-                promptId: prompt.id, 
-                promptTitle: prompt.title,
-                slug: prompt.slug 
-            })
-        });
-        const json = await res.json();
-        if (json.success && json.url) {
-            window.location.href = json.url;
-        } else {
-            throw new Error(json.error || 'Failed to create checkout session');
-        }
-    } catch (err) {
-        toast.error(err.message);
-        const btn = document.getElementById('tip-btn');
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = '☕ Tip Creator ($5)';
-        }
     }
 });
 

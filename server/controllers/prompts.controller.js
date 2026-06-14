@@ -1,4 +1,5 @@
 const promptService = require('../services/prompt.service');
+const { IMAGE_CATEGORY_SLUGS, IMAGE_TOOL_SLUGS } = require('../constants/imagePlatform');
 
 const getPrompts = async (req, res) => {
     const { page, limit, q, category, sort, tool } = req.query;
@@ -33,14 +34,22 @@ const incrementView = async (req, res) => {
 
 const getCategories = async (req, res) => {
     const { supabaseAdmin } = require('../config/supabase');
-    const { data, error } = await supabaseAdmin.from('categories').select('id, name, slug, icon').order('name');
+    const { data, error } = await supabaseAdmin
+        .from('categories')
+        .select('id, name, slug, icon')
+        .in('slug', IMAGE_CATEGORY_SLUGS)
+        .order('name');
     if (error) throw error;
     res.json({ success: true, data });
 };
 
 const getTools = async (req, res) => {
     const { supabaseAdmin } = require('../config/supabase');
-    const { data, error } = await supabaseAdmin.from('tools').select('id, name, slug, logo_url').order('name');
+    const { data, error } = await supabaseAdmin
+        .from('tools')
+        .select('id, name, slug, logo_url')
+        .in('slug', IMAGE_TOOL_SLUGS)
+        .order('name');
     if (error) throw error;
     res.json({ success: true, data });
 };

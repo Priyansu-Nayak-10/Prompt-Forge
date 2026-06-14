@@ -4,14 +4,14 @@
   <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pf-theme")||"dark");</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PromptForge — AI Prompt Discovery Platform</title>
-  <meta name="description" content="Discover, copy, and share the best AI prompts for Midjourney, ChatGPT, Stable Diffusion and more.">
-  <meta property="og:title" content="PromptForge — AI Prompt Discovery Platform">
-  <meta property="og:description" content="Discover, copy, and share the best AI prompts for Midjourney, ChatGPT, Stable Diffusion and more.">
+  <title>PromptForge - AI Image Prompt Platform</title>
+  <meta name="description" content="Discover, preview, and share AI image-generation prompts for Midjourney, FLUX, Stable Diffusion, DALL-E and more.">
+  <meta property="og:title" content="PromptForge - AI Image Prompt Platform">
+  <meta property="og:description" content="Discover, preview, and share AI image-generation prompts for leading image models.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://promptforge.com/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="PromptForge — AI Prompt Discovery Platform">
+  <meta name="twitter:title" content="PromptForge - AI Image Prompt Platform">
   <link rel="canonical" href="https://promptforge.com/">
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <link rel="stylesheet" href="/css/global.css?v=2.0">
@@ -45,12 +45,17 @@
     }
     .feature-card:hover { border-color: rgba(108,63,232,0.35); transform: translateY(-2px); }
     .feature-icon {
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       background: rgba(108,63,232,0.15);
       border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 800;
       margin-bottom: 1rem;
+      color: var(--accent-2);
     }
     .feature-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
     .feature-desc { font-size: 0.8375rem; color: var(--text-muted); line-height: 1.6; }
@@ -58,136 +63,103 @@
 </head>
 <body>
 <div class="page-wrap">
-
-  
   <div id="navbar-container"></div>
 
   <main class="flex-1">
-    
     <section class="hero">
       <div class="hero-glow"></div>
       <div style="position:relative;z-index:1">
         <div class="hero-badge animate-fade-in">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><circle cx="6" cy="6" r="6"/></svg>
-          Production-ready AI Prompt Library
+          AI Image Prompt Library
         </div>
         <h1 class="animate-fade-up">
-          Discover the Perfect<br>
-          <span class="gradient-text">AI Prompts</span>
+          Discover Image Prompts<br>
+          <span class="gradient-text">That Generate</span>
         </h1>
         <p class="animate-fade-up stagger-1">
-          The ultimate curated library of high-quality prompts for image generation, text AI, and video creation. Stop guessing, start creating.
+          A focused library of image-generation and transformation prompts with preview images, model compatibility, and creator-tested workflows.
         </p>
 
-        
         <form action="/prompts.html" method="GET" class="search-wrap animate-fade-up stagger-2">
           <div class="search-inner">
             <svg class="search-icon" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input name="q" type="text" class="search-input" placeholder="Search 'cinematic portrait', 'anime landscape'...">
+            <input name="q" type="text" class="search-input" placeholder="Search cinematic portrait, anime landscape, product photography...">
             <button type="submit" class="search-btn">Search</button>
           </div>
         </form>
 
-        
         <div class="hero-tools animate-fade-up stagger-3">
           <span style="font-size:0.78rem;color:var(--text-muted)">Works with:</span>
           <span class="tool-pill">Midjourney</span>
-          <span class="tool-pill">ChatGPT</span>
-          <span class="tool-pill">DALL·E 3</span>
+          <span class="tool-pill">FLUX</span>
+          <span class="tool-pill">DALL-E</span>
           <span class="tool-pill">Stable Diffusion</span>
-          <span class="tool-pill">Sora</span>
+          <span class="tool-pill">Ideogram</span>
         </div>
 
-        
         <div class="hero-stats animate-fade-up stagger-4">
           <div class="hero-stat-item">
-            <div class="hero-stat-num" id="stat-num-prompts">…</div>
-            <div class="hero-stat-label">Curated Prompts</div>
+            <div class="hero-stat-num" id="stat-num-prompts">...</div>
+            <div class="hero-stat-label">Image Prompts</div>
           </div>
           <div class="hero-stat-item">
-            <div class="hero-stat-num" id="stat-num-categories">…</div>
-            <div class="hero-stat-label">Categories</div>
+            <div class="hero-stat-num" id="stat-num-categories">...</div>
+            <div class="hero-stat-label">Image Categories</div>
           </div>
           <div class="hero-stat-item">
-            <div class="hero-stat-num" id="stat-num-users">…</div>
-            <div class="hero-stat-label">Members</div>
+            <div class="hero-stat-num" id="stat-num-users">...</div>
+            <div class="hero-stat-label">Creators</div>
           </div>
         </div>
       </div>
     </section>
 
-    
     <section style="padding: 2rem 0 4rem;">
       <div class="container">
         <div class="section-header">
-          <h2 class="section-title">🔥 Trending Prompts</h2>
-          <a href="/prompts.html" class="section-link">View all →</a>
+          <h2 class="section-title">Trending Image Prompts</h2>
+          <a href="/prompts.html" class="section-link">View all -></a>
         </div>
-        <div class="card-grid" id="trending-prompts-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
-          
-        </div>
+        <div class="card-grid" id="trending-prompts-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));"></div>
       </div>
     </section>
 
-    
     <section style="padding: 2rem 0 5rem; border-top: 1px solid var(--border);">
       <div class="container">
         <div style="text-align:center; margin-bottom: 1rem;">
-          <h2 class="section-title" style="font-size:1.75rem;">Why PromptForge?</h2>
-          <p style="color:var(--text-muted);margin-top:0.5rem;font-size:0.9375rem;">Everything you need to craft perfect AI outputs.</p>
+          <h2 class="section-title" style="font-size:1.75rem;">Built for AI Image Creation</h2>
+          <p style="color:var(--text-muted);margin-top:0.5rem;font-size:0.9375rem;">Everything here supports discovering, previewing, and reusing image prompts.</p>
         </div>
         <div class="features-grid">
           <div class="feature-card">
-            <div class="feature-icon">🎯</div>
-            <div class="feature-title">Expert-Curated</div>
-            <div class="feature-desc">Every prompt is tested, refined, and rated by our editorial team before it goes live.</div>
+            <div class="feature-icon">IMG</div>
+            <div class="feature-title">Preview First</div>
+            <div class="feature-desc">Each prompt can include a sample output image so creators can judge style and quality before copying.</div>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <div class="feature-title">One-Click Copy</div>
-            <div class="feature-desc">Copy any prompt instantly and paste it directly into your favorite AI tool.</div>
+            <div class="feature-icon">ART</div>
+            <div class="feature-title">Image Workflow Ready</div>
+            <div class="feature-desc">Prompts include visual direction, style cues, tags, categories, and model compatibility.</div>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">🔍</div>
-            <div class="feature-title">Smart Search</div>
-            <div class="feature-desc">Find exactly what you need with full-text search, category filters, and difficulty levels.</div>
+            <div class="feature-icon">SEA</div>
+            <div class="feature-title">Image-Only Search</div>
+            <div class="feature-desc">Find portraits, product shots, concept art, architecture, logos, anime styles, and transformations.</div>
           </div>
           <div class="feature-card">
-            <div class="feature-icon">🌐</div>
-            <div class="feature-title">Multi-Tool Support</div>
-            <div class="feature-desc">Prompts for Midjourney, ChatGPT, DALL·E, Stable Diffusion, Sora, and more.</div>
+            <div class="feature-icon">MOD</div>
+            <div class="feature-title">Model Matching</div>
+            <div class="feature-desc">Filter prompts by Midjourney, FLUX, Stable Diffusion, Ideogram, DALL-E, Leonardo AI, and Firefly.</div>
           </div>
-        </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Newsletter Section -->
-    <section style="padding: 4rem 0 5rem; border-top: 1px solid var(--border);">
-      <div class="container" style="max-width: 760px; text-align: center;">
-        <div style="background: linear-gradient(145deg, var(--card), var(--bg-2)); border: 1px solid var(--border-2); border-radius: var(--radius-lg); padding: 3rem 2rem; box-shadow: var(--shadow-card); position: relative; overflow: hidden;">
-          <!-- Decorative Glow -->
-          <div style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 300px; height: 100px; background: var(--accent-glow); filter: blur(60px); pointer-events: none;"></div>
-          
-          <div style="font-size: 2.5rem; margin-bottom: 1rem;">📬</div>
-          <h2 style="font-size: 1.875rem; font-weight: 800; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.02em;">Get the Best Prompts, Weekly.</h2>
-          <p style="color: var(--text-muted); font-size: 0.9375rem; margin: 0 auto 2rem; max-width: 420px; line-height: 1.6;">Join 10,000+ creators receiving our top hand-picked AI prompts every week. No spam, ever.</p>
-          
-          <form id="newsletter-form" style="display: flex; gap: 0.5rem; max-width: 460px; margin: 0 auto; position: relative; z-index: 1;">
-            <input type="email" id="newsletter-email" required placeholder="Enter your email address" class="input" style="flex: 1; padding: 0.875rem 1.25rem; font-size: 0.9375rem; background: var(--bg); border-color: var(--border);">
-            <button type="submit" class="btn btn-primary" id="newsletter-btn" style="padding: 0 1.5rem; font-size: 0.9375rem; white-space: nowrap;">Subscribe</button>
-          </form>
-          <div id="newsletter-msg" style="margin-top: 1rem; font-size: 0.875rem; display: none;"></div>
         </div>
       </div>
     </section>
   </main>
 
-  
   <div id="footer-container"></div>
-
 </div>
 <script type="module" src="/js/pages/home.js"></script>
 <script type="module" src="/js/theme.js"></script>

@@ -57,13 +57,7 @@ const optimizePrompt = async (req, res) => {
 
     let systemInstruction = "You are an expert Prompt Engineer. Optimize the user's prompt for clarity, detail, and effectiveness.";
 
-    if (type === 'text-to-image') {
-        systemInstruction += " Since this is a Text-to-Image prompt, focus on visual styling, artistic medium, lighting, camera settings (if applicable), and clear descriptive subject matter. Exclude direct text reasoning instructions.";
-    } else if (type === 'text-to-video') {
-        systemInstruction += " Since this is a Text-to-Video prompt, focus on motion descriptions, transitions, camera movement, temporal elements, and cinematic visual styling.";
-    } else if (type === 'text-to-text') {
-        systemInstruction += " Since this is a Text-to-Text prompt, focus on structural clarity, explicit constraints, step-by-step reasoning instructions, and persona definition to ensure the AI responds with high fidelity.";
-    }
+    systemInstruction += " Since this is a Text-to-Image prompt, focus on visual styling, artistic medium, lighting, camera settings if applicable, and clear descriptive subject matter. Exclude direct text reasoning instructions.";
 
     if (style === 'creative') {
         systemInstruction += " Make the prompt highly imaginative, evocative, and rich in metaphors or expressive language.";
@@ -71,8 +65,6 @@ const optimizePrompt = async (req, res) => {
         systemInstruction += " Make the prompt focused on photorealism: hyper-detailed camera lenses (e.g., 85mm, f/1.4), cinematic lighting (e.g., volumetric, golden hour), and lifelike texture descriptions.";
     } else if (style === 'concise') {
         systemInstruction += " Keep the prompt short, punchy, and highly optimized, keeping only the most essential instructions or keywords.";
-    } else if (style === 'academic') {
-        systemInstruction += " Make the prompt highly structured, formal, and precise, resembling scientific or scholarly queries.";
     }
 
     systemInstruction += " Return ONLY the final optimized prompt text, without any introductory or explanatory text.";

@@ -11,6 +11,14 @@ const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB for avatars
 });
+const submissionImageUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) return cb(new Error('Only image files are allowed.'), false);
+        cb(null, true);
+    }
+});
 
 // All user routes require authentication
 router.use(asyncHandler(requireUser));
@@ -31,5 +39,6 @@ router.delete('/likes/:promptId', asyncHandler(userController.unlikePrompt));
 // --- Submissions ---
 router.get('/submissions',              asyncHandler(userController.getSubmissions));
 router.post('/submissions', authLimiter, asyncHandler(userController.submitPrompt));
+router.post('/submissions/image', authLimiter, submissionImageUpload.single('image'), asyncHandler(userController.uploadSubmissionImage));
 
 module.exports = router;

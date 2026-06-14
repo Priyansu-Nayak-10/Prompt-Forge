@@ -1,17 +1,35 @@
-import { submitPrompt, fetchCategories } from '/js/api.js';
+import { submitPrompt, fetchCategories, uploadSubmissionImage } from '/js/api.js';
 import { toast, setButtonLoading } from '/js/core.js';
 import { requireAuth } from '/js/auth.js';
 
+const IMAGE_TOOLS = ['Midjourney', 'FLUX', 'Stable Diffusion', 'Ideogram', 'DALL-E', 'Leonardo AI', 'Firefly'];
+
 const init = async () => {
-    document.title = 'Submit Prompt — PromptForge';
+    document.title = 'Submit Image Prompt - PromptForge';
     const user = await requireAuth();
     if (!user) return;
 
     const form = document.getElementById('submit-form');
     const errEl = document.getElementById('form-error');
     const catSelect = document.getElementById('sub-category');
-    
-    // Load categories
+    const imageInput = document.getElementById('sample-image-input');
+    const imageUrlInput = document.getElementById('sample-image-url');
+    const uploadZone = document.getElementById('sample-upload-zone');
+    const uploadEmpty = document.getElementById('sample-upload-empty');
+    const imagePreview = document.getElementById('sample-image-preview');
+    const uploadStatus = document.getElementById('image-upload-status');
+    const toolOptions = document.getElementById('tool-options');
+    const tagInput = document.getElementById('sub-tags');
+    const tagPreview = document.getElementById('tag-preview');
+    const aiStyleEl = document.getElementById('ai-style');
+
+    toolOptions.innerHTML = IMAGE_TOOLS.map(tool => `
+        <label class="tool-option">
+          <input type="checkbox" name="supported-tools" value="${tool}">
+          ${tool}
+        </label>
+    `).join('');
+
     try {
         const res = await fetchCategories();
         if (res.data) {
@@ -21,23 +39,9 @@ const init = async () => {
         console.warn('Failed to load categories', e);
     }
 
-    // Sync the ai-type select with the main sub-type field
-    const subTypeEl  = document.getElementById('sub-type');
-    const aiTypeEl   = document.getElementById('ai-type');
-    const aiStyleEl  = document.getElementById('ai-style');
-    const typeMap = { 'text-to-image': 'image', 'text-to-text': 'text', 'text-to-video': 'video' };
-    if (subTypeEl && aiTypeEl) {
-        subTypeEl.addEventListener('change', () => {
-            const mapped = typeMap[subTypeEl.value] || 'image';
-            aiTypeEl.value = mapped;
-        });
-        // Set initial state
-        aiTypeEl.value = typeMap[subTypeEl.value] || 'image';
-    }
-
     const counter = (id, counterId, max) => {
         const el = document.getElementById(id);
-        const c  = document.getElementById(counterId);
+        const c = document.getElementById(counterId);
         el.addEventListener('input', () => {
             const n = el.value.length;
             c.textContent = `${n} / ${max}`;
@@ -47,40 +51,91 @@ const init = async () => {
     counter('sub-title', 'title-counter', 100);
     counter('sub-prompt', 'prompt-counter', 5000);
 
-    // AI Optimize
+    const renderTags = () => {
+        const tags = tagInput.value.split(',').map(t => t.trim()).filter(Boolean).slice(0, 12);
+        tagPreview.innerHTML = tags.map(tag => `<span class="chip" style="font-size:0.75rem;padding:0.2rem 0.65rem;">${tag}</span>`).join('');
+    };
+    tagInput.addEventListener('input', renderTags);
+
+    const uploadImage = async (file) => {
+        if (!file) return;
+        if (!file.type.startsWith('image/')) return toast.error('Upload an image file.');
+
+        uploadStatus.textContent = 'Uploading image...';
+        uploadStatus.classList.remove('warn');
+        imageUrlInput.value = '';
+
+        const localPreview = URL.createObjectURL(file);
+        imagePreview.src = localPreview;
+        imagePreview.style.display = 'block';
+        uploadEmpty.style.display = 'none';
+
+        try {
+            const res = await uploadSubmissionImage(file);
+            imageUrlInput.value = res.url;
+            imagePreview.src = res.url;
+            uploadStatus.textContent = 'Sample output image uploaded';
+            toast.success('Sample image uploaded.');
+        } catch (err) {
+            imageUrlInput.value = '';
+            imagePreview.style.display = 'none';
+            uploadEmpty.style.display = 'block';
+            uploadStatus.textContent = err.message;
+            uploadStatus.classList.add('warn');
+            toast.error(err.message);
+        } finally {
+            URL.revokeObjectURL(localPreview);
+        }
+    };
+
+    uploadZone.addEventListener('click', () => imageInput.click());
+    uploadZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            imageInput.click();
+        }
+    });
+    imageInput.addEventListener('change', () => uploadImage(imageInput.files[0]));
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragging');
+    });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragging'));
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragging');
+        uploadImage(e.dataTransfer.files[0]);
+    });
+
     const optimizeBtn = document.getElementById('ai-optimize-btn');
     optimizeBtn?.addEventListener('click', async () => {
         const promptInput = document.getElementById('sub-prompt');
         const text = promptInput.value.trim();
-        if (!text) return toast.error('Enter a prompt first to optimize it!');
-        
+        if (!text) return toast.error('Enter an image prompt first to optimize it.');
+
         const style = aiStyleEl?.value || 'creative';
-        const type  = aiTypeEl?.value  || 'image';
-        
         const originalText = optimizeBtn.innerHTML;
         optimizeBtn.disabled = true;
         optimizeBtn.textContent = '...';
-        
+
         try {
             const token = localStorage.getItem('sb_access_token');
             const res = await fetch('/api/ai/optimize', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ prompt: text, style, type })
+                body: JSON.stringify({ prompt: text, style, type: 'text-to-image' })
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Optimization failed');
-            
+
             promptInput.value = json.optimized;
-            // Update char counter manually
-            const n = promptInput.value.length;
             const c = document.getElementById('prompt-counter');
-            if (c) c.textContent = `${n} / 5000`;
-            
-            toast.success(`Prompt optimized (${style}, ${type}) ✨`);
+            if (c) c.textContent = `${promptInput.value.length} / 5000`;
+
+            toast.success(`Image prompt optimized (${style}).`);
         } catch (err) {
             toast.error(err.message);
         } finally {
@@ -94,12 +149,12 @@ const init = async () => {
         errEl.style.display = 'none';
 
         const title = document.getElementById('sub-title').value.trim();
-        const pt    = document.getElementById('sub-prompt').value.trim();
-        const category_id = catSelect.value;
-        const tools_input = document.getElementById('sub-tools').value;
+        const promptText = document.getElementById('sub-prompt').value.trim();
+        const categoryId = catSelect.value;
+        const selectedTools = Array.from(document.querySelectorAll('input[name="supported-tools"]:checked')).map(input => input.value);
 
-        if (!title || !pt) {
-            errEl.textContent = 'Title and Prompt Text are required.';
+        if (!title || !promptText || !categoryId || !imageUrlInput.value || selectedTools.length === 0) {
+            errEl.textContent = 'Title, sample image, prompt, category, and at least one supported image tool are required.';
             errEl.style.display = 'block';
             return;
         }
@@ -108,15 +163,22 @@ const init = async () => {
         const restore = setButtonLoading(btn, 'Submitting...');
         try {
             await submitPrompt({
-                title, 
-                prompt_text: pt,
+                title,
+                prompt_text: promptText,
                 description: document.getElementById('sub-description').value.trim() || undefined,
-                difficulty:  document.getElementById('sub-difficulty').value,
-                prompt_type: document.getElementById('sub-type').value,
-                tags: document.getElementById('sub-tags').value.split(',').map(t => t.trim()).filter(Boolean),
-                category_id: category_id || null,
-                supported_tools: tools_input ? tools_input.split(',').map(t => t.trim()).filter(Boolean) : [],
+                difficulty: document.getElementById('sub-difficulty').value,
+                prompt_type: 'text-to-image',
+                tags: tagInput.value.split(',').map(t => t.trim()).filter(Boolean),
+                category_id: categoryId,
+                supported_tools: selectedTools,
+                preview_image_url: imageUrlInput.value,
             });
+            form.reset();
+            imageUrlInput.value = '';
+            imagePreview.style.display = 'none';
+            uploadEmpty.style.display = 'block';
+            uploadStatus.textContent = 'No image uploaded';
+            tagPreview.innerHTML = '';
             document.getElementById('form-card').style.display = 'none';
             document.getElementById('success-card').style.display = 'block';
         } catch (err) {

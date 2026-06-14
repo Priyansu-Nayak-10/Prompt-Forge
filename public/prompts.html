@@ -4,27 +4,17 @@
   <script>document.documentElement.setAttribute("data-theme",localStorage.getItem("pf-theme")||"dark");</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browse Prompts — PromptForge</title>
-  <meta name="description" content="Browse and search thousands of curated AI prompts for Midjourney, ChatGPT, Stable Diffusion and more.">
-  <meta property="og:title" content="Browse Prompts — PromptForge">
-  <meta property="og:description" content="Browse and search thousands of curated AI prompts for image generation, ChatGPT, and more.">
+  <title>Browse Image Prompts - PromptForge</title>
+  <meta name="description" content="Browse and search curated AI image-generation and transformation prompts.">
+  <meta property="og:title" content="Browse Image Prompts - PromptForge">
+  <meta property="og:description" content="Browse prompts for AI image generation, editing, transformation, and art workflows.">
   <meta property="og:type" content="website">
   <link rel="canonical" href="https://promptforge.com/prompts.html">
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
   <link rel="stylesheet" href="/css/global.css?v=2.0">
   <style>
-    /* ─── Page Hero ────────────────────────────────────────────────────── */
-    .prompts-hero {
-      padding: 2.75rem 0 2rem;
-      position: relative;
-    }
-    .prompts-hero-inner {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
+    .prompts-hero { padding: 2.75rem 0 2rem; position: relative; }
+    .prompts-hero-inner { display: flex; align-items: flex-end; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
     .prompts-hero-badge {
       display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.28rem 0.8rem; border-radius: 99px;
@@ -38,8 +28,6 @@
       color: var(--text); margin-bottom: 0.5rem; line-height: 1.1;
     }
     .prompts-hero p { font-size: 0.9rem; color: var(--text-muted); }
-
-    /* ─── Filter Bar ───────────────────────────────────────────────────── */
     .filter-bar {
       background: var(--card);
       border: 1px solid var(--border);
@@ -81,51 +69,48 @@
 </head>
 <body>
 <div class="page-wrap">
-
   <div id="navbar-container"></div>
 
   <div class="page-content">
     <div class="container">
-
-      <!-- Hero -->
       <div class="prompts-hero">
         <div class="prompts-hero-inner">
           <div>
-            <div class="prompts-hero-badge">✨ Community Prompts</div>
-            <h1>Browse Prompts</h1>
-            <p>Curated AI prompts for every creative need — copy, save, and create.</p>
+            <div class="prompts-hero-badge">Image Prompt Library</div>
+            <h1>Browse Image Prompts</h1>
+            <p>Curated prompts for text-to-image, image editing, transformation, and AI art workflows.</p>
           </div>
           <a href="/submit.html" class="btn btn-primary btn-sm" style="gap:0.4rem;flex-shrink:0;">
             <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            Submit a Prompt
+            Submit Image Prompt
           </a>
         </div>
       </div>
 
-      <!-- Filter Bar -->
       <div class="filter-bar">
         <div class="filter-row">
           <div class="filter-search-wrap">
             <svg class="filter-search-icon" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input id="search-input" type="text" class="filter-search" placeholder="Search prompts…" autocomplete="off">
+            <input id="search-input" type="text" class="filter-search" placeholder="Search image prompts..." autocomplete="off">
           </div>
           <select id="sort-select" class="sort-select" aria-label="Sort">
             <option value="latest">Latest</option>
-            <option value="trending">🔥 Trending</option>
+            <option value="trending">Trending</option>
           </select>
         </div>
         <div class="chip-row" id="category-filters">
-          <button class="chip active" data-category="">All</button>
+          <button class="chip active" data-category="">All categories</button>
+        </div>
+        <div class="chip-row" id="tool-filters">
+          <button class="chip active" data-tool="">All tools</button>
         </div>
       </div>
 
-      <!-- Meta + Grid -->
       <div class="results-meta" id="results-meta"></div>
       <div class="card-grid" id="prompts-grid"></div>
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;justify-content:center;margin-top:2.5rem;" id="pagination"></div>
-
     </div>
   </div>
 

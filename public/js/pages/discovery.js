@@ -63,7 +63,7 @@ const init = async () => {
                     <div style="font-size:0.875rem;">Tools will appear here once they are added.</div>
                   </div>`;
             } else {
-                if (toolsCount) toolsCount.textContent = `${tools.length} AI tools available`;
+                if (toolsCount) toolsCount.textContent = `${tools.length} image tools available`;
 
                 toolsGrid.innerHTML = tools.map((tool, i) => `
                   <a href="/prompts.html?tool=${encodeURIComponent(tool.name)}"

@@ -1,6 +1,7 @@
 const promptService = require('../services/prompt.service');
 
 const { supabaseAdmin } = require('../config/supabase');
+const { IMAGE_PROMPT_TYPE } = require('../constants/imagePlatform');
 
 const createPrompt = async (req, res) => {
     const prompt = await promptService.createPrompt(req.body);
@@ -26,7 +27,8 @@ const getPrompts = async (req, res) => {
 
     let query = supabaseAdmin
         .from('prompts')
-        .select('id, title, slug, status, copy_count, view_count, created_at, preview_image_url, difficulty, prompt_text', { count: 'exact' })
+        .select('id, title, slug, status, copy_count, view_count, created_at, preview_image_url, difficulty, prompt_type, prompt_text, negative_prompt, description, tags', { count: 'exact' })
+        .eq('prompt_type', IMAGE_PROMPT_TYPE)
         .order('created_at', { ascending: false });
 
     if (q) query = query.ilike('title', `%${q}%`);
@@ -86,7 +88,8 @@ const updateSubmissionStatus = async (req, res) => {
                 tags: data.tags,
                 supported_tools: data.supported_tools,
                 difficulty: data.difficulty,
-                prompt_type: data.prompt_type,
+                prompt_type: IMAGE_PROMPT_TYPE,
+                preview_image_url: data.preview_image_url,
                 status: 'published'
             }]);
         

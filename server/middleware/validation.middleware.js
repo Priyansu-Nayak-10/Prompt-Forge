@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { IMAGE_PROMPT_TYPE } = require('../constants/imagePlatform');
 
 // Middleware to execute a Zod schema against the request body or query
 const validate = (schema, target = 'body') => {
@@ -37,7 +38,7 @@ const promptCreateSchema = z.object({
     preview_image_url: z.string().url().optional().nullable(),
     tags: z.array(z.string()).optional().default([]),
     difficulty: z.enum(['beginner', 'intermediate', 'advanced']).default('intermediate'),
-    prompt_type: z.enum(['text-to-image', 'text-to-text', 'text-to-video']).default('text-to-image'),
+    prompt_type: z.literal(IMAGE_PROMPT_TYPE).default(IMAGE_PROMPT_TYPE),
     status: z.enum(['draft', 'pending', 'published', 'rejected', 'archived']).default('published')
 });
 

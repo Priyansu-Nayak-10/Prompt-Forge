@@ -106,6 +106,16 @@ export const submitPrompt = async (data) => {
     });
 };
 
+export const uploadSubmissionImage = async (file) => {
+    const form = new FormData();
+    form.append('image', file);
+    return request(`${API_BASE_URL}/user/submissions/image`, {
+        method: 'POST',
+        headers: authHeader(),
+        body: form,
+    });
+};
+
 export const updateUserProfile = async (data) => {
     return request(`${API_BASE_URL}/user/profile`, {
         method: 'PUT',

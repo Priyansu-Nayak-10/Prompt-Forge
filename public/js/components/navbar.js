@@ -13,8 +13,7 @@ const navbarHtml = `
       <div class="nav-links">
         <a href="/" class="nav-link" data-path="/">Home</a>
         <a href="/prompts.html" class="nav-link" data-path="/prompts.html">Prompts</a>
-        <a href="/categories.html" class="nav-link" data-path="/categories.html">Categories</a>
-        <a href="/tools.html" class="nav-link" data-path="/tools.html">Tools</a>
+        <a href="/tools.html" class="nav-link" data-path="/tools.html">Image Tools</a>
         <a href="/submit.html" class="nav-cta">Submit Prompt</a>
       </div>
 
@@ -83,8 +82,7 @@ const navbarHtml = `
 
     <a href="/" class="drawer-link">🏠 Home</a>
     <a href="/prompts.html" class="drawer-link">✨ Prompts</a>
-    <a href="/categories.html" class="drawer-link">📂 Categories</a>
-    <a href="/tools.html" class="drawer-link">🔧 Tools</a>
+    <a href="/tools.html" class="drawer-link">Image Tools</a>
 
     <div class="drawer-divider"></div>
     <a href="/submit.html" class="drawer-link">📝 Submit Prompt</a>
