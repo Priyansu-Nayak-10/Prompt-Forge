@@ -110,19 +110,7 @@
         </div>
 
         <div class="field">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">
-            <label class="label" for="sub-prompt" style="margin-bottom:0;">Image Prompt *</label>
-            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
-              <select id="ai-style" class="input" style="font-size:0.72rem;padding:0.25rem 0.5rem;height:auto;min-width:120px;">
-                <option value="creative">Creative</option>
-                <option value="photorealistic">Photorealistic</option>
-                <option value="concise">Concise</option>
-              </select>
-              <button type="button" id="ai-optimize-btn" class="btn btn-secondary btn-sm" style="font-size:0.72rem;padding:0.25rem 0.6rem;gap:0.3rem;white-space:nowrap;">
-                Optimize
-              </button>
-            </div>
-          </div>
+          <label class="label" for="sub-prompt">Image Prompt *</label>
           <textarea id="sub-prompt" class="input" rows="8" placeholder="Describe the subject, composition, lighting, style, camera or medium, mood, aspect ratio, and model-specific parameters..." required maxlength="5000"></textarea>
           <div class="char-counter" id="prompt-counter">0 / 5000</div>
         </div>
@@ -132,21 +120,11 @@
           <input id="sub-description" type="text" class="input" placeholder="What this prompt generates, use case, or style overview..." maxlength="200">
         </div>
 
-        <div class="field-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-          <div class="field">
-            <label class="label" for="sub-category">Category *</label>
-            <select id="sub-category" class="input" required>
-              <option value="">Select a Category</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="label" for="sub-difficulty">Workflow Complexity</label>
-            <select id="sub-difficulty" class="input">
-              <option value="beginner">Beginner</option>
-              <option value="intermediate" selected>Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-          </div>
+        <div class="field">
+          <label class="label" for="sub-category">Category *</label>
+          <select id="sub-category" class="input" required>
+            <option value="">Select a Category</option>
+          </select>
         </div>
 
         <div class="field">

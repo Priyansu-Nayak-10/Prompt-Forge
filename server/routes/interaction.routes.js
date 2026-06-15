@@ -10,8 +10,6 @@ router.get('/reviews/:promptId', asyncHandler(interactionController.getPromptRev
 router.post('/reviews/:promptId', asyncHandler(requireUser), asyncHandler(interactionController.createReview));
 router.delete('/reviews/:id',     asyncHandler(requireUser), asyncHandler(interactionController.deleteReview));
 
-// AI Optimizer
-router.post('/ai/optimize', authLimiter, asyncHandler(requireUser), asyncHandler(interactionController.optimizePrompt));
 
 // Stripe Checkout
 router.post('/checkout/create-session', asyncHandler(requireUser), asyncHandler(interactionController.createCheckoutSession));

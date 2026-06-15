@@ -21,7 +21,6 @@ const init = async () => {
     const toolOptions = document.getElementById('tool-options');
     const tagInput = document.getElementById('sub-tags');
     const tagPreview = document.getElementById('tag-preview');
-    const aiStyleEl = document.getElementById('ai-style');
 
     toolOptions.innerHTML = IMAGE_TOOLS.map(tool => `
         <label class="tool-option">
@@ -108,41 +107,6 @@ const init = async () => {
     });
 
     const optimizeBtn = document.getElementById('ai-optimize-btn');
-    optimizeBtn?.addEventListener('click', async () => {
-        const promptInput = document.getElementById('sub-prompt');
-        const text = promptInput.value.trim();
-        if (!text) return toast.error('Enter an image prompt first to optimize it.');
-
-        const style = aiStyleEl?.value || 'creative';
-        const originalText = optimizeBtn.innerHTML;
-        optimizeBtn.disabled = true;
-        optimizeBtn.textContent = '...';
-
-        try {
-            const token = localStorage.getItem('sb_access_token');
-            const res = await fetch('/api/ai/optimize', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ prompt: text, style, type: 'text-to-image' })
-            });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Optimization failed');
-
-            promptInput.value = json.optimized;
-            const c = document.getElementById('prompt-counter');
-            if (c) c.textContent = `${promptInput.value.length} / 5000`;
-
-            toast.success(`Image prompt optimized (${style}).`);
-        } catch (err) {
-            toast.error(err.message);
-        } finally {
-            optimizeBtn.disabled = false;
-            optimizeBtn.innerHTML = originalText;
-        }
-    });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -166,7 +130,6 @@ const init = async () => {
                 title,
                 prompt_text: promptText,
                 description: document.getElementById('sub-description').value.trim() || undefined,
-                difficulty: document.getElementById('sub-difficulty').value,
                 prompt_type: 'text-to-image',
                 tags: tagInput.value.split(',').map(t => t.trim()).filter(Boolean),
                 category_id: categoryId,
