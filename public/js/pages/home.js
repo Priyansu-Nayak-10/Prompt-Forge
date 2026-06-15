@@ -63,15 +63,13 @@ const loadStats = async () => {
         const res = await fetch('/api/stats');
         const json = await res.json();
         if (!json.success) return;
-        const { prompts, users, categories } = json.data;
+        const { prompts, users } = json.data;
 
         const promptsEl = document.getElementById('stat-num-prompts');
         const usersEl = document.getElementById('stat-num-users');
-        const categoriesEl = document.getElementById('stat-num-categories');
 
         if (promptsEl) promptsEl.textContent = prompts > 999 ? `${Math.floor(prompts / 1000)}K+` : `${prompts}+`;
         if (usersEl) usersEl.textContent = users > 999 ? `${Math.floor(users / 1000)}K+` : `${users}+`;
-        if (categoriesEl) categoriesEl.textContent = `${categories}+`;
     } catch {
         // Stats are non-critical.
     }
