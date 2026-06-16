@@ -49,9 +49,6 @@ const deleteReview = async (req, res) => {
     res.json({ success: true, message: 'Review deleted' });
 };
 
-    };
-};
-
 // Stripe Checkout
 const createCheckoutSession = async (req, res) => {
     if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ success: false, error: 'Payments not configured.' });
